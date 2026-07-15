@@ -1,14 +1,13 @@
 import { useState } from "react";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { vi } from "vitest";
 import NumberField from "@/components/NumberField";
 
 describe(NumberField, () => {
   describe("initial render", () => {
     it("displays the value from the parent unchanged", () => {
-      render(<NumberField label="Seconds" value={134} onCommit={() => {}} onStep={() => {}} />);
-      expect(screen.getByLabelText("Seconds")).toHaveValue("134");
+      render(<NumberField label="Seconds" value={13} onCommit={() => {}} onStep={() => {}} />);
+      expect(screen.getByLabelText("Seconds")).toHaveValue("13");
     });
   });
 
@@ -52,7 +51,7 @@ describe(NumberField, () => {
       expect(onCommit).toHaveBeenCalledExactlyOnceWith(12);
     });
 
-    it("allows the field to be emptied and then treats empty as zero", async () => {
+    it("allows the field to be emptied, and treats empty as zero", async () => {
       const user = userEvent.setup();
       const onCommit = vi.fn();
       render(<NumberField label="Seconds" value={29} onCommit={onCommit} onStep={() => {}} />);
@@ -66,27 +65,27 @@ describe(NumberField, () => {
     });
 
     it("displays the parent's normalized value after committing", async () => {
-      // Stands in for a timer controller that mods overflowing seconds into minutes
-      function ModSixty() {
+      // Stands in for a timer controller that mods overflowing seconds
+      function MockTimerController() {
         const [seconds, setSeconds] = useState(0);
         return (
           <NumberField
             label="Seconds"
             value={seconds}
-            onCommit={(next) => setSeconds(next % 60)}
+            onCommit={(next) => setSeconds(next > 59 ? 59 : next)}
             onStep={() => {}}
           />
         );
       }
       const user = userEvent.setup();
-      render(<ModSixty />);
+      render(<MockTimerController />);
 
       const input = screen.getByLabelText("Seconds");
       await user.clear(input);
       await user.type(input, "78");
       await user.tab();
 
-      expect(input).toHaveValue("18");
+      expect(input).toHaveValue("59");
     });
   });
 

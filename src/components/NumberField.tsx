@@ -1,4 +1,5 @@
-import { useId, useState, type ChangeEvent, type KeyboardEvent } from "react";
+import type { ChangeEvent, KeyboardEvent } from "react";
+import { useId, useState } from "react";
 
 export type StepDirection = "up" | "down";
 
@@ -40,6 +41,8 @@ export default function NumberField({
 
   const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
     if (event.key === "Enter") {
+      // Avoid submitting the overarching form
+      event.preventDefault();
       commitDraft();
     }
   };

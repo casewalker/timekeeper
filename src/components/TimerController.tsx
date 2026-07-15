@@ -1,20 +1,19 @@
-import NumberField, { type StepDirection } from "@/components/NumberField";
+import type { StepDirection } from "@/components/NumberField";
+import NumberField from "@/components/NumberField";
 
 export interface TimerControllerProps {
   label: string;
   currentTotalSeconds: number;
   onUpdate: (nextTotalSeconds: number) => void;
-  maximumSeconds?: number;
+  maxTotalSeconds?: number;
   disabled?: boolean;
 }
-
-const SECONDS_STEP = 15;
 
 export default function TimerController({
   label,
   currentTotalSeconds,
   onUpdate,
-  maximumSeconds,
+  maxTotalSeconds,
   disabled = false,
 }: TimerControllerProps) {
   const minutes = Math.floor(currentTotalSeconds / 60);
@@ -22,7 +21,9 @@ export default function TimerController({
 
   const updateTotalSeconds = (nextSeconds: number) => {
     const boundedNextSeconds =
-      maximumSeconds !== undefined && nextSeconds > maximumSeconds ? maximumSeconds : nextSeconds;
+      maxTotalSeconds !== undefined && nextSeconds > maxTotalSeconds
+        ? maxTotalSeconds
+        : nextSeconds;
     onUpdate(Math.max(0, boundedNextSeconds));
   };
 
@@ -31,22 +32,26 @@ export default function TimerController({
   };
 
   const commitSeconds = (nextSeconds: number) => {
+    // Clamp seconds to [0, 59]
     updateTotalSeconds(minutes * 60 + Math.min(nextSeconds, 59));
   };
 
   const stepMinutes = (direction: StepDirection) => {
     if (direction === "down" && currentTotalSeconds < 60) return;
-    updateTotalSeconds(currentTotalSeconds + (direction === "up" ? 60 : -60));
+    if (direction === "up") {
+      updateTotalSeconds(currentTotalSeconds + 60);
+    } else {
+      updateTotalSeconds(currentTotalSeconds - 60);
+    }
   };
 
-  // Snapping the total to a multiple of the step matches snapping the seconds
-  // field with minute-rollover, because the step divides 60 evenly
   const stepSeconds = (direction: StepDirection) => {
-    const nextMultiple =
-      direction === "up"
-        ? Math.floor(currentTotalSeconds / SECONDS_STEP) + 1
-        : Math.ceil(currentTotalSeconds / SECONDS_STEP) - 1;
-    updateTotalSeconds(nextMultiple * SECONDS_STEP);
+    // Step seconds by 15 at a time, but also round to the nearest multiple of 15
+    if (direction === "up") {
+      updateTotalSeconds(15 * (Math.floor(currentTotalSeconds / 15) + 1));
+    } else {
+      updateTotalSeconds(15 * (Math.ceil(currentTotalSeconds / 15) - 1));
+    }
   };
 
   return (
