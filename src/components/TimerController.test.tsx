@@ -62,13 +62,50 @@ describe(TimerController, () => {
     expect(getSecondsInput()).toHaveValue("45");
   });
 
-  it("handles >60 seconds by rolling into the minutes", async () => {
+  it("increments the minutes while preserving the seconds", async () => {
+    const user = userEvent.setup();
+    render(<MockTimerHarness initialTotal={150} />);
+
+    await user.click(screen.getByRole("button", { name: "Increment Minutes" }));
+    expect(getMinutesInput()).toHaveValue("3");
+    expect(getSecondsInput()).toHaveValue("30");
+  });
+
+  it("decrements the minutes while preserving the seconds", async () => {
+    const user = userEvent.setup();
+    render(<MockTimerHarness initialTotal={150} />);
+
+    await user.click(screen.getByRole("button", { name: "Decrement Minutes" }));
+    expect(getMinutesInput()).toHaveValue("1");
+    expect(getSecondsInput()).toHaveValue("30");
+  });
+
+  it("ignores the minutes decrement when the total is under a minute", async () => {
+    const user = userEvent.setup();
+    render(<MockTimerHarness initialTotal={30} />);
+
+    await user.click(screen.getByRole("button", { name: "Decrement Minutes" }));
+    expect(getMinutesInput()).toHaveValue("0");
+    expect(getSecondsInput()).toHaveValue("30");
+  });
+
+  it("clamps typed seconds to 59 instead of rolling into the minutes", async () => {
     const user = userEvent.setup();
     render(<MockTimerHarness />);
 
     await user.type(getSecondsInput(), "75{Enter}");
-    expect(getMinutesInput()).toHaveValue("1");
-    expect(getSecondsInput()).toHaveValue("15");
+    expect(getMinutesInput()).toHaveValue("0");
+    expect(getSecondsInput()).toHaveValue("59");
+  });
+
+  it("leaves the minutes untouched when typed seconds are clamped", async () => {
+    const user = userEvent.setup();
+    render(<MockTimerHarness initialTotal={180} />);
+
+    await user.clear(getSecondsInput());
+    await user.type(getSecondsInput(), "123{Enter}");
+    expect(getMinutesInput()).toHaveValue("3");
+    expect(getSecondsInput()).toHaveValue("59");
   });
 
   it("does not go below zero", async () => {

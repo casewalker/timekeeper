@@ -1,12 +1,12 @@
 import { useId, useState, type ChangeEvent, type KeyboardEvent } from "react";
 
+export type StepDirection = "up" | "down";
+
 export interface NumberFieldProps {
   label: string;
   value: number;
-  onChange: (next: number) => void;
-  step?: number;
-  min?: number;
-  max?: number;
+  onCommit: (next: number) => void;
+  onStep: (direction: StepDirection) => void;
   disabled?: boolean;
 }
 
@@ -15,26 +15,18 @@ const isNaturalNumber = (text: string) => /^\d+$/.test(text);
 export default function NumberField({
   label,
   value,
-  onChange,
-  step = 1,
-  min,
-  max,
+  onCommit,
+  onStep,
   disabled = false,
 }: NumberFieldProps) {
   const [draft, setDraft] = useState<string | null>(null);
   const inputId = useId();
 
-  const clamp = (next: number) => {
-    if (min !== undefined && next < min) return min;
-    if (max !== undefined && next > max) return max;
-    return next;
-  };
-
   const commitDraft = () => {
     if (draft !== null && isNaturalNumber(draft)) {
-      onChange(clamp(Number(draft)));
+      onCommit(Number(draft));
     } else if (draft !== null && draft === "") {
-      onChange(0);
+      onCommit(0);
     }
     setDraft(null);
   };
@@ -50,14 +42,6 @@ export default function NumberField({
     if (event.key === "Enter") {
       commitDraft();
     }
-  };
-
-  const increment = () => {
-    onChange(clamp((Math.floor(value / step) + 1) * step));
-  };
-
-  const decrement = () => {
-    onChange(clamp((Math.ceil(value / step) - 1) * step));
   };
 
   return (
@@ -78,7 +62,7 @@ export default function NumberField({
           type="button"
           aria-label={`Increment ${label}`}
           disabled={disabled}
-          onClick={increment}
+          onClick={() => onStep("up")}
         >
           <span aria-hidden="true">▲</span>
         </button>
@@ -86,7 +70,7 @@ export default function NumberField({
           type="button"
           aria-label={`Decrement ${label}`}
           disabled={disabled}
-          onClick={decrement}
+          onClick={() => onStep("down")}
         >
           <span aria-hidden="true">▼</span>
         </button>

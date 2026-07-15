@@ -7,7 +7,7 @@ import NumberField from "@/components/NumberField";
 describe(NumberField, () => {
   describe("initial render", () => {
     it("displays the value from the parent unchanged", () => {
-      render(<NumberField label="Seconds" value={134} onChange={() => {}} />);
+      render(<NumberField label="Seconds" value={134} onCommit={() => {}} onStep={() => {}} />);
       expect(screen.getByLabelText("Seconds")).toHaveValue("134");
     });
   });
@@ -15,54 +15,54 @@ describe(NumberField, () => {
   describe("typing", () => {
     it("only commits after tabbing away", async () => {
       const user = userEvent.setup();
-      const onChange = vi.fn();
-      render(<NumberField label="Seconds" value={0} onChange={onChange} />);
+      const onCommit = vi.fn();
+      render(<NumberField label="Seconds" value={0} onCommit={onCommit} onStep={() => {}} />);
 
       const input = screen.getByLabelText("Seconds");
       await user.clear(input);
       await user.type(input, "46");
-      expect(onChange).not.toHaveBeenCalled();
+      expect(onCommit).not.toHaveBeenCalled();
 
       await user.tab();
-      expect(onChange).toHaveBeenCalledExactlyOnceWith(46);
+      expect(onCommit).toHaveBeenCalledExactlyOnceWith(46);
     });
 
     it("commits on Enter", async () => {
       const user = userEvent.setup();
-      const onChange = vi.fn();
-      render(<NumberField label="Seconds" value={0} onChange={onChange} />);
+      const onCommit = vi.fn();
+      render(<NumberField label="Seconds" value={0} onCommit={onCommit} onStep={() => {}} />);
 
       const input = screen.getByLabelText("Seconds");
       await user.clear(input);
       await user.type(input, "23{Enter}");
-      expect(onChange).toHaveBeenCalledExactlyOnceWith(23);
+      expect(onCommit).toHaveBeenCalledExactlyOnceWith(23);
     });
 
     it("ignores non-numeric characters", async () => {
       const user = userEvent.setup();
-      const onChange = vi.fn();
-      render(<NumberField label="Seconds" value={1} onChange={onChange} />);
+      const onCommit = vi.fn();
+      render(<NumberField label="Seconds" value={1} onCommit={onCommit} onStep={() => {}} />);
 
       const input = screen.getByLabelText("Seconds");
       await user.type(input, "abc-.");
       await user.tab();
-      expect(onChange).not.toHaveBeenCalled();
+      expect(onCommit).not.toHaveBeenCalled();
 
       await user.type(input, "wasd2blerg{Enter}");
-      expect(onChange).toHaveBeenCalledExactlyOnceWith(12);
+      expect(onCommit).toHaveBeenCalledExactlyOnceWith(12);
     });
 
     it("allows the field to be emptied and then treats empty as zero", async () => {
       const user = userEvent.setup();
-      const onChange = vi.fn();
-      render(<NumberField label="Seconds" value={29} onChange={onChange} />);
+      const onCommit = vi.fn();
+      render(<NumberField label="Seconds" value={29} onCommit={onCommit} onStep={() => {}} />);
 
       const input = screen.getByLabelText("Seconds");
       await user.clear(input);
       expect(input).toHaveValue("");
 
       await user.tab();
-      expect(onChange).toHaveBeenCalledExactlyOnceWith(0);
+      expect(onCommit).toHaveBeenCalledExactlyOnceWith(0);
     });
 
     it("displays the parent's normalized value after committing", async () => {
@@ -70,7 +70,12 @@ describe(NumberField, () => {
       function ModSixty() {
         const [seconds, setSeconds] = useState(0);
         return (
-          <NumberField label="Seconds" value={seconds} onChange={(next) => setSeconds(next % 60)} />
+          <NumberField
+            label="Seconds"
+            value={seconds}
+            onCommit={(next) => setSeconds(next % 60)}
+            onStep={() => {}}
+          />
         );
       }
       const user = userEvent.setup();
@@ -86,77 +91,39 @@ describe(NumberField, () => {
   });
 
   describe("step buttons", () => {
-    it("increments to the next multiple of step", async () => {
+    it("reports an upward step when increment is clicked", async () => {
       const user = userEvent.setup();
-      const onChange = vi.fn();
-      render(<NumberField label="Seconds" value={17} step={15} onChange={onChange} />);
+      const onStep = vi.fn();
+      render(<NumberField label="Seconds" value={17} onCommit={() => {}} onStep={onStep} />);
 
       await user.click(screen.getByRole("button", { name: "Increment Seconds" }));
-      expect(onChange).toHaveBeenCalledExactlyOnceWith(30);
+      expect(onStep).toHaveBeenCalledExactlyOnceWith("up");
     });
 
-    it("can increment by 1 too", async () => {
+    it("reports a downward step when decrement is clicked", async () => {
       const user = userEvent.setup();
-      const onChange = vi.fn();
-      render(<NumberField label="Seconds" value={17} step={1} onChange={onChange} />);
+      const onStep = vi.fn();
+      render(<NumberField label="Seconds" value={17} onCommit={() => {}} onStep={onStep} />);
+
+      await user.click(screen.getByRole("button", { name: "Decrement Seconds" }));
+      expect(onStep).toHaveBeenCalledExactlyOnceWith("down");
+    });
+
+    it("does not commit when stepping", async () => {
+      const user = userEvent.setup();
+      const onCommit = vi.fn();
+      render(<NumberField label="Seconds" value={0} onCommit={onCommit} onStep={() => {}} />);
 
       await user.click(screen.getByRole("button", { name: "Increment Seconds" }));
-      expect(onChange).toHaveBeenCalledExactlyOnceWith(18);
-    });
-
-    it("decrements to the previous multiple of step", async () => {
-      const user = userEvent.setup();
-      const onChange = vi.fn();
-      render(<NumberField label="Seconds" value={17} step={15} onChange={onChange} />);
-
-      await user.click(screen.getByRole("button", { name: "Decrement Seconds" }));
-      expect(onChange).toHaveBeenCalledExactlyOnceWith(15);
-    });
-
-    it("can decrement by 1 too", async () => {
-      const user = userEvent.setup();
-      const onChange = vi.fn();
-      render(<NumberField label="Seconds" value={17} step={1} onChange={onChange} />);
-
-      await user.click(screen.getByRole("button", { name: "Decrement Seconds" }));
-      expect(onChange).toHaveBeenCalledExactlyOnceWith(16);
-    });
-
-    it("can pass negative values", async () => {
-      const user = userEvent.setup();
-      const onChange = vi.fn();
-      render(<NumberField label="Seconds" value={0} step={15} onChange={onChange} />);
-
-      await user.click(screen.getByRole("button", { name: "Decrement Seconds" }));
-      expect(onChange).toHaveBeenCalledExactlyOnceWith(-15);
-    });
-  });
-
-  describe("clamping", () => {
-    it("doesn't let the value go below min", async () => {
-      const user = userEvent.setup();
-      const onChange = vi.fn();
-      render(<NumberField label="Minutes" value={0} min={0} onChange={onChange} />);
-
-      await user.click(screen.getByRole("button", { name: "Decrement Minutes" }));
-      expect(onChange).toHaveBeenCalledExactlyOnceWith(0);
-    });
-
-    it("reverts to max from larger values", async () => {
-      const user = userEvent.setup();
-      const onChange = vi.fn();
-      render(<NumberField label="Minutes" value={0} max={99} onChange={onChange} />);
-
-      const input = screen.getByLabelText("Minutes");
-      await user.clear(input);
-      await user.type(input, "500{Enter}");
-      expect(onChange).toHaveBeenCalledExactlyOnceWith(99);
+      expect(onCommit).not.toHaveBeenCalled();
     });
   });
 
   describe("disabled", () => {
     it("disables the input and both buttons when disabled", () => {
-      render(<NumberField label="Seconds" value={0} disabled onChange={() => {}} />);
+      render(
+        <NumberField label="Seconds" value={0} disabled onCommit={() => {}} onStep={() => {}} />,
+      );
       expect(screen.getByLabelText("Seconds")).toBeDisabled();
       expect(screen.getByRole("button", { name: "Increment Seconds" })).toBeDisabled();
       expect(screen.getByRole("button", { name: "Decrement Seconds" })).toBeDisabled();

@@ -1,4 +1,4 @@
-import NumberField from "@/components/NumberField";
+import NumberField, { type StepDirection } from "@/components/NumberField";
 
 export interface TimerControllerProps {
   label: string;
@@ -7,6 +7,8 @@ export interface TimerControllerProps {
   maximumSeconds?: number;
   disabled?: boolean;
 }
+
+const SECONDS_STEP = 15;
 
 export default function TimerController({
   label,
@@ -24,24 +26,34 @@ export default function TimerController({
     onUpdate(Math.max(0, boundedNextSeconds));
   };
 
+  const commitMinutes = (nextMinutes: number) => {
+    updateTotalSeconds(nextMinutes * 60 + seconds);
+  };
+
+  const commitSeconds = (nextSeconds: number) => {
+    updateTotalSeconds(minutes * 60 + Math.min(nextSeconds, 59));
+  };
+
+  const stepMinutes = (direction: StepDirection) => {
+    if (direction === "down" && currentTotalSeconds < 60) return;
+    updateTotalSeconds(currentTotalSeconds + (direction === "up" ? 60 : -60));
+  };
+
+  // Snapping the total to a multiple of the step matches snapping the seconds
+  // field with minute-rollover, because the step divides 60 evenly
+  const stepSeconds = (direction: StepDirection) => {
+    const nextMultiple =
+      direction === "up"
+        ? Math.floor(currentTotalSeconds / SECONDS_STEP) + 1
+        : Math.ceil(currentTotalSeconds / SECONDS_STEP) - 1;
+    updateTotalSeconds(nextMultiple * SECONDS_STEP);
+  };
+
   return (
     <fieldset disabled={disabled}>
-      {/* TODO: Remove nested "disabled" work, it should be inherited automatically from the fieldset */}
       <legend>{label}</legend>
-      <NumberField
-        label="Minutes"
-        value={minutes}
-        min={0}
-        onChange={(nextMinutes) => updateTotalSeconds(nextMinutes * 60 + seconds)}
-        disabled={disabled}
-      />
-      <NumberField
-        label="Seconds"
-        value={seconds}
-        step={15}
-        onChange={(nextSeconds) => updateTotalSeconds(minutes * 60 + nextSeconds)}
-        disabled={disabled}
-      />
+      <NumberField label="Minutes" value={minutes} onCommit={commitMinutes} onStep={stepMinutes} />
+      <NumberField label="Seconds" value={seconds} onCommit={commitSeconds} onStep={stepSeconds} />
     </fieldset>
   );
 }
