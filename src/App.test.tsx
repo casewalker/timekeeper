@@ -2,9 +2,6 @@ import { act, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import App from "@/App";
 
-// shouldAdvanceTime lets RTL's internal setTimeout(0) queue-drain fire (it only
-// auto-advances under jest fake timers, not vitest), while vi.advanceTimersByTime
-// still drives the countdown deterministically.
 vi.useFakeTimers({ shouldAdvanceTime: true });
 
 const getTimer = (name: string) => within(screen.getByRole("group", { name }));
@@ -149,17 +146,29 @@ describe(App, () => {
       expect(getTimer("Warning Time").getByLabelText("Seconds")).toBeEnabled();
     });
 
-    // TODO: Come back to this?
-    it("returns to editing about a second after reaching zero", async () => {
-      await startTheTimer();
+    it("holds at zero until a click anywhere dismisses it", async () => {
+      const user = await startTheTimer();
       act(() => vi.advanceTimersByTime(300000));
       expect(screen.getByRole("timer")).toHaveTextContent("0:00");
       expect(screen.getByRole("button", { name: "Restart" })).toBeInTheDocument();
 
-      act(() => vi.advanceTimersByTime(1000));
+      act(() => vi.advanceTimersByTime(60000));
+      expect(screen.getByRole("timer")).toHaveTextContent("0:00");
+      expect(screen.getByRole("button", { name: "Restart" })).toBeInTheDocument();
+
+      await user.click(document.body);
       expect(screen.getByRole("button", { name: "Start" })).toBeInTheDocument();
       expect(getTimer("Sharing Time").getByLabelText("Minutes")).toBeEnabled();
       expect(getTimer("Sharing Time").getByLabelText("Minutes")).toHaveValue("5");
+    });
+
+    it("clicking Restart at zero starts a fresh countdown instead of dismissing", async () => {
+      const user = await startTheTimer();
+      act(() => vi.advanceTimersByTime(300000));
+
+      await user.click(screen.getByRole("button", { name: "Restart" }));
+      expect(screen.getByRole("timer")).toHaveTextContent("5:00");
+      expect(getTimer("Sharing Time").getByLabelText("Minutes")).toBeDisabled();
     });
   });
 });

@@ -10,20 +10,34 @@ const formatTimer = (totalSeconds: number) =>
 function App() {
   const [sharingSeconds, setSharingSeconds] = useState(0);
   const [warningSeconds, setWarningSeconds] = useState(0);
-  const { phase, remainingSeconds, start, stop } = useCountdown();
-  const isEditing = phase === "editing";
+  const { countdownPhase, remainingTimerSeconds, start, stop } = useCountdown();
+  const isEditing = countdownPhase === "editing";
 
   const handleStart: SubmitEventHandler<HTMLFormElement> = (event) => {
     event.preventDefault();
     // Invariant: 0 <= warning <= sharing; if warning is too big, silently drag it down
     setWarningSeconds(Math.min(warningSeconds, sharingSeconds));
-    start(sharingSeconds);
+    start(sharingSeconds, warningSeconds);
+  };
+
+  const timeDisplay = () => {
+    switch (countdownPhase) {
+      case "running":
+        return <div style={{ color: "green" }}>{formatTimer(remainingTimerSeconds)}</div>;
+      case "warning":
+        return <div style={{ color: "orange" }}>{formatTimer(remainingTimerSeconds)}</div>;
+      case "finished":
+        return <div style={{ color: "red" }}>{formatTimer(remainingTimerSeconds)}</div>;
+      case "editing":
+      default:
+        return <div>{formatTimer(sharingSeconds)}</div>;
+    }
   };
 
   return (
     <main>
       <h1 role="timer" aria-label="Time remaining">
-        {formatTimer(remainingSeconds)}
+        {timeDisplay()}
       </h1>
       <form onSubmit={handleStart}>
         <TimerController
@@ -46,10 +60,10 @@ function App() {
           </button>
         ) : (
           <>
-            <button type="button" onClick={() => start(sharingSeconds)}>
+            <button type="button" onClick={() => start(sharingSeconds, warningSeconds)}>
               Restart
             </button>
-            <button type="button" onClick={stop}>
+            <button type="button" onClick={() => stop()}>
               Stop
             </button>
           </>

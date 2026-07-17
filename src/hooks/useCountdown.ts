@@ -1,44 +1,48 @@
 import { useEffect, useState } from "react";
 
-export type CountdownPhase = "editing" | "running" | "finished";
+export type CountdownPhase = "editing" | "running" | "warning" | "finished";
 
 const TICK_MS = 200;
-const FINISHED_PAUSE_MS = 1000;
 
 export default function useCountdown() {
-  const [phase, setPhase] = useState<CountdownPhase>("editing");
-  const [deadline, setDeadline] = useState(0);
-  const [remainingSeconds, setRemainingSeconds] = useState(0);
+  const [countdownPhase, setCountdownPhase] = useState<CountdownPhase>("editing");
+  const [timerDeadline, setTimerDeadline] = useState(0);
+  const [remainingTimerSeconds, setRemainingTimerSeconds] = useState(0);
+  const [warningSeconds, setWarningSeconds] = useState(0);
 
-  const start = (totalSeconds: number) => {
-    setDeadline(Date.now() + totalSeconds * 1000);
-    setRemainingSeconds(totalSeconds);
-    setPhase("running");
+  const start = (totalSeconds: number, inputWarningSeconds: number) => {
+    setTimerDeadline(Date.now() + totalSeconds * 1000);
+    setRemainingTimerSeconds(totalSeconds);
+    setWarningSeconds(inputWarningSeconds);
+    setCountdownPhase("running");
   };
 
   const stop = () => {
-    setPhase("editing");
+    setCountdownPhase("editing");
   };
 
-  // The deadline, not tick-counting, is the source of truth for the time left,
-  // so a delayed or throttled tick can never drift the countdown
+  // Run the countdown until it is finished
   useEffect(() => {
-    if (phase !== "running") return;
+    if (!["running", "warning"].includes(countdownPhase)) return;
     const intervalId = setInterval(() => {
-      const nextRemaining = Math.max(0, Math.ceil((deadline - Date.now()) / 1000));
-      setRemainingSeconds(nextRemaining);
+      const nextRemaining = Math.max(0, Math.ceil((timerDeadline - Date.now()) / 1000));
+      setRemainingTimerSeconds(nextRemaining);
       if (nextRemaining === 0) {
-        setPhase("finished");
+        setCountdownPhase("finished");
+      } else if (nextRemaining <= warningSeconds) {
+        setCountdownPhase("warning");
       }
     }, TICK_MS);
     return () => clearInterval(intervalId);
-  }, [phase, deadline]);
+  }, [countdownPhase, timerDeadline, warningSeconds]);
 
+  // "Finished" holds at 0:00 until dismissed by any click
   useEffect(() => {
-    if (phase !== "finished") return;
-    const timeoutId = setTimeout(() => setPhase("editing"), FINISHED_PAUSE_MS);
-    return () => clearTimeout(timeoutId);
-  }, [phase]);
+    if (countdownPhase !== "finished") return;
+    const dismiss = () => setCountdownPhase((p) => (p === "finished" ? "editing" : p));
+    document.addEventListener("click", dismiss);
+    return () => document.removeEventListener("click", dismiss);
+  }, [countdownPhase]);
 
-  return { phase, remainingSeconds, start, stop };
+  return { countdownPhase, remainingTimerSeconds, start, stop };
 }
