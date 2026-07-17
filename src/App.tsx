@@ -23,14 +23,14 @@ function App() {
   const timeDisplay = () => {
     switch (countdownPhase) {
       case "running":
-        return <div style={{ color: "green" }}>{formatTimer(remainingTimerSeconds)}</div>;
+        return <span style={{ color: "green" }}>{formatTimer(remainingTimerSeconds)}</span>;
       case "warning":
-        return <div style={{ color: "orange" }}>{formatTimer(remainingTimerSeconds)}</div>;
+        return <span style={{ color: "orange" }}>{formatTimer(remainingTimerSeconds)}</span>;
       case "finished":
-        return <div style={{ color: "red" }}>{formatTimer(remainingTimerSeconds)}</div>;
+        return <span style={{ color: "red" }}>{formatTimer(remainingTimerSeconds)}</span>;
       case "editing":
       default:
-        return <div>{formatTimer(sharingSeconds)}</div>;
+        return <span>{formatTimer(sharingSeconds)}</span>;
     }
   };
 
