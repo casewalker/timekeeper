@@ -4,6 +4,24 @@ import App from "@/App";
 
 vi.useFakeTimers({ shouldAdvanceTime: true });
 
+/** Starts an XX Sharing timer with a YY Warning. */
+const startTheTimer = async (
+  sharingMinutes: number,
+  sharingSeconds: number,
+  warningMinutes: number,
+  warningSeconds: number,
+) => {
+  const user = userEvent.setup();
+  render(<App />);
+  await user.type(getTimer("Sharing Time").getByLabelText("Minutes"), `${sharingMinutes}{Enter}`);
+  await user.type(getTimer("Sharing Time").getByLabelText("Seconds"), `${sharingSeconds}{Enter}`);
+  await user.type(getTimer("Warning Time").getByLabelText("Minutes"), `${warningMinutes}{Enter}`);
+  await user.type(getTimer("Warning Time").getByLabelText("Seconds"), `${warningSeconds}{Enter}`);
+
+  await user.click(screen.getByRole("button", { name: "Start" }));
+  return user;
+};
+
 const getTimer = (name: string) => within(screen.getByRole("group", { name }));
 
 describe(App, () => {
@@ -81,44 +99,33 @@ describe(App, () => {
   });
 
   describe("running", () => {
-    // Starts a 5:00 Sharing timer with a 1:00 warning
-    const startTheTimer = async () => {
-      const user = userEvent.setup();
-      render(<App />);
-      await user.type(getTimer("Sharing Time").getByLabelText("Minutes"), "5{Enter}");
-      await user.type(getTimer("Warning Time").getByLabelText("Minutes"), "1{Enter}");
-
-      await user.click(screen.getByRole("button", { name: "Start" }));
-      return user;
-    };
-
-    it("replaces Start with Restart and Stop", async () => {
-      await startTheTimer();
+    it("replaces the Start button with Restart and Stop", async () => {
+      await startTheTimer(5, 0, 1, 0);
       expect(screen.queryByRole("button", { name: "Start" })).not.toBeInTheDocument();
       expect(screen.getByRole("button", { name: "Restart" })).toBeInTheDocument();
       expect(screen.getByRole("button", { name: "Stop" })).toBeInTheDocument();
     });
 
     it("disables the timer inputs", async () => {
-      await startTheTimer();
+      await startTheTimer(5, 0, 1, 0);
       expect(getTimer("Sharing Time").getByLabelText("Minutes")).toBeDisabled();
       expect(getTimer("Warning Time").getByLabelText("Seconds")).toBeDisabled();
     });
 
     it("shows the remaining time counting down", async () => {
-      await startTheTimer();
+      await startTheTimer(5, 0, 1, 0);
       expect(screen.getByRole("timer")).toHaveTextContent("5:00");
 
-      act(() => vi.advanceTimersByTime(1000));
+      await act(() => vi.advanceTimersByTime(1000));
       expect(screen.getByRole("timer")).toHaveTextContent("4:59");
 
-      act(() => vi.advanceTimersByTime(59000));
+      await act(() => vi.advanceTimersByTime(59000));
       expect(screen.getByRole("timer")).toHaveTextContent("4:00");
     });
 
-    it("Restart returns the countdown to the full time, with controls still disabled", async () => {
-      const user = await startTheTimer();
-      act(() => vi.advanceTimersByTime(90000));
+    it("the Restart button returns the countdown to the full time, with controls still disabled", async () => {
+      const user = await startTheTimer(5, 0, 1, 0);
+      await act(() => vi.advanceTimersByTime(90000));
       expect(screen.getByRole("timer")).toHaveTextContent("3:30");
 
       await user.click(screen.getByRole("button", { name: "Restart" }));
@@ -128,9 +135,9 @@ describe(App, () => {
       expect(getTimer("Warning Time").getByLabelText("Seconds")).toBeDisabled();
     });
 
-    it("Stop returns to editing with the configured times intact", async () => {
-      const user = await startTheTimer();
-      act(() => vi.advanceTimersByTime(30000));
+    it("the Stop button returns to editing with the configured times intact", async () => {
+      const user = await startTheTimer(5, 0, 1, 0);
+      await act(() => vi.advanceTimersByTime(30000));
 
       await user.click(screen.getByRole("button", { name: "Stop" }));
 
@@ -147,12 +154,12 @@ describe(App, () => {
     });
 
     it("holds at zero until a click anywhere dismisses it", async () => {
-      const user = await startTheTimer();
-      act(() => vi.advanceTimersByTime(300000));
+      const user = await startTheTimer(5, 0, 1, 0);
+      await act(() => vi.advanceTimersByTime(300000));
       expect(screen.getByRole("timer")).toHaveTextContent("0:00");
       expect(screen.getByRole("button", { name: "Restart" })).toBeInTheDocument();
 
-      act(() => vi.advanceTimersByTime(60000));
+      await act(() => vi.advanceTimersByTime(60000));
       expect(screen.getByRole("timer")).toHaveTextContent("0:00");
       expect(screen.getByRole("button", { name: "Restart" })).toBeInTheDocument();
 
@@ -163,12 +170,46 @@ describe(App, () => {
     });
 
     it("clicking Restart at zero starts a fresh countdown instead of dismissing", async () => {
-      const user = await startTheTimer();
-      act(() => vi.advanceTimersByTime(300000));
+      const user = await startTheTimer(5, 0, 1, 0);
+      await act(() => vi.advanceTimersByTime(300000));
 
       await user.click(screen.getByRole("button", { name: "Restart" }));
       expect(screen.getByRole("timer")).toHaveTextContent("5:00");
       expect(getTimer("Sharing Time").getByLabelText("Minutes")).toBeDisabled();
+    });
+  });
+
+  describe("hero text", () => {
+    it("Renders a singular of the warning minutes at the right time", async () => {
+      await startTheTimer(1, 1, 1, 0);
+      expect(screen.queryAllByText("Warning")).toHaveLength(0);
+      expect(screen.queryAllByText('Say: "1 Minute"')).toHaveLength(0);
+      await act(() => vi.advanceTimersByTime(1000));
+      expect(screen.getByText("Warning")).toBeInTheDocument();
+      expect(screen.getByText('Say: "1 Minute"')).toBeInTheDocument();
+    });
+
+    it("Renders a singular of the warning second at the right time", async () => {
+      await startTheTimer(0, 2, 0, 1);
+      expect(screen.queryAllByText('Say: "1 Second"')).toHaveLength(0);
+      await act(() => vi.advanceTimersByTime(1000));
+      expect(screen.getByText('Say: "1 Second"')).toBeInTheDocument();
+    });
+
+    it("Renders a plurals of the warning minutes and seconds at the right time", async () => {
+      await startTheTimer(6, 0, 5, 55);
+      expect(screen.queryAllByText('Say: "5 Minutes and 55 Seconds"')).toHaveLength(0);
+      await act(() => vi.advanceTimersByTime(5000));
+      expect(screen.getByText('Say: "5 Minutes and 55 Seconds"')).toBeInTheDocument();
+    });
+
+    it("Renders the ending text when the Sharing time is up", async () => {
+      await startTheTimer(0, 2, 0, 1);
+      expect(screen.queryAllByText("Finished!")).toHaveLength(0);
+      expect(screen.queryAllByText('Say: "Time!"')).toHaveLength(0);
+      await act(() => vi.advanceTimersByTime(2000));
+      expect(screen.getByText("Finished!")).toBeInTheDocument();
+      expect(screen.getByText('Say: "Time!"')).toBeInTheDocument();
     });
   });
 });

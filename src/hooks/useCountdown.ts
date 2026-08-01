@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 
 export type CountdownPhase = "editing" | "running" | "warning" | "finished";
 
-const TICK_MS = 200;
+const TICK_MS = 100;
 
 export default function useCountdown() {
   const [countdownPhase, setCountdownPhase] = useState<CountdownPhase>("editing");

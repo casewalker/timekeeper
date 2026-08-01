@@ -7,7 +7,19 @@ import "@/App.css";
 const formatTimer = (totalSeconds: number) =>
   `${Math.floor(totalSeconds / 60)}:${String(totalSeconds % 60).padStart(2, "0")}`;
 
-function App() {
+const formatWarningText = (warningSeconds: number) => {
+  const pluralize = (string: string, n: number) => (n === 1 ? string : `${string}s`);
+
+  const numMinutes = Math.floor(warningSeconds / 60);
+  const numSeconds = warningSeconds % 60;
+
+  const minutesPart = `${numMinutes > 0 ? numMinutes + " " + pluralize("Minute", numMinutes) : ""}`;
+  const secondsPart = `${numSeconds > 0 ? numSeconds + " " + pluralize("Second", numSeconds) : ""}`;
+
+  return `${minutesPart}${numMinutes > 0 && numSeconds > 0 ? " and " : ""}${secondsPart}`;
+};
+
+export default function App() {
   const [sharingSeconds, setSharingSeconds] = useState(0);
   const [warningSeconds, setWarningSeconds] = useState(0);
   const { countdownPhase, remainingTimerSeconds, start, stop } = useCountdown();
@@ -20,25 +32,58 @@ function App() {
     start(sharingSeconds, warningSeconds);
   };
 
-  const timeDisplay = () => {
+  type PhasedResources = {
+    timerColor: string;
+    countdownTime: number;
+    warningTextPrimary: string;
+    warningTextSecondary: string;
+  };
+
+  const phasedResources = (function (): PhasedResources {
     switch (countdownPhase) {
       case "running":
-        return <span style={{ color: "green" }}>{formatTimer(remainingTimerSeconds)}</span>;
+        return {
+          timerColor: "#444444",
+          countdownTime: remainingTimerSeconds,
+          warningTextPrimary: "",
+          warningTextSecondary: "",
+        };
       case "warning":
-        return <span style={{ color: "orange" }}>{formatTimer(remainingTimerSeconds)}</span>;
+        return {
+          timerColor: "orange",
+          countdownTime: remainingTimerSeconds,
+          warningTextPrimary: "Warning",
+          warningTextSecondary: `Say: "${formatWarningText(warningSeconds)}"`,
+        };
       case "finished":
-        return <span style={{ color: "red" }}>{formatTimer(remainingTimerSeconds)}</span>;
+        return {
+          timerColor: "red",
+          countdownTime: remainingTimerSeconds,
+          warningTextPrimary: "Finished!",
+          warningTextSecondary: 'Say: "Time!"',
+        };
       case "editing":
       default:
-        return <span>{formatTimer(sharingSeconds)}</span>;
+        return {
+          timerColor: "#666666",
+          countdownTime: sharingSeconds,
+          warningTextPrimary: "",
+          warningTextSecondary: "",
+        };
     }
-  };
+  })();
 
   return (
     <main>
       <h1 role="timer" aria-label="Time remaining">
-        {timeDisplay()}
+        <span style={{ color: phasedResources.timerColor }}>
+          {formatTimer(phasedResources.countdownTime)}
+        </span>
       </h1>
+      <div>
+        <p>{phasedResources.warningTextPrimary}</p>
+        <p>{phasedResources.warningTextSecondary}</p>
+      </div>
       <form onSubmit={handleStart}>
         <TimerController
           label="Sharing Time"
@@ -72,5 +117,3 @@ function App() {
     </main>
   );
 }
-
-export default App;

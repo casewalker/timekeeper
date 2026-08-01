@@ -76,7 +76,7 @@ describe(useCountdown, () => {
     expect(result.current.countdownPhase).toBe("editing");
   });
 
-  it("does not change phase on clicks except for 'finished'", () => {
+  it("does not change phase on document-clicks when the state isn't 'finished'", () => {
     const { result } = renderHook(useCountdown);
     act(() => document.body.click());
     expect(result.current.countdownPhase).toBe("editing");
