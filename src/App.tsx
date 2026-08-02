@@ -31,13 +31,12 @@ export default function App() {
 
   const handleStart: SubmitEventHandler<HTMLFormElement> = (event) => {
     event.preventDefault();
-    // Invariant: 0 <= warning <= sharing; if warning is too big, silently drag it down
+    // Invariant: 0 ≤ warning ≤ sharing; if warning is too big, silently drag it down upon starting
     setWarningSeconds(Math.min(warningSeconds, sharingSeconds));
     start(sharingSeconds, warningSeconds);
   };
 
   type PhasedResources = {
-    timerColor: string;
     countdownTime: number;
     warningTextPrimary: string;
     warningTextSecondary: string;
@@ -47,33 +46,25 @@ export default function App() {
     switch (countdownPhase) {
       case "running":
         return {
-          timerColor: "#444444",
           countdownTime: remainingTimerSeconds,
           warningTextPrimary: "",
           warningTextSecondary: "",
         };
       case "warning":
         return {
-          timerColor: "orange",
           countdownTime: remainingTimerSeconds,
           warningTextPrimary: "Warning",
           warningTextSecondary: `Say: "${formatDuration(warningSeconds)}"`,
         };
       case "finished":
         return {
-          timerColor: "red",
           countdownTime: remainingTimerSeconds,
           warningTextPrimary: "Finished!",
           warningTextSecondary: 'Say: "Time!"',
         };
       case "editing":
       default:
-        return {
-          timerColor: "#666666",
-          countdownTime: sharingSeconds,
-          warningTextPrimary: "",
-          warningTextSecondary: "",
-        };
+        return { countdownTime: sharingSeconds, warningTextPrimary: "", warningTextSecondary: "" };
     }
   })();
 
@@ -88,7 +79,7 @@ export default function App() {
         />
       )}
       <div role="timer" aria-label={formatDuration(phasedResources.countdownTime)}>
-        <span style={{ color: phasedResources.timerColor }}>
+        <span className={`timer-value timer-value--${countdownPhase}`}>
           {formatTimer(phasedResources.countdownTime)}
         </span>
       </div>

@@ -48,6 +48,22 @@
   inset: 0;
 }
 
+.timer-value--editing {
+  color: #666666;
+}
+
+.timer-value--running {
+  color: #444444;
+}
+
+.timer-value--warning {
+  color: orange;
+}
+
+.timer-value--finished {
+  color: red;
+}
+
 .counter {
   font-size: 16px;
   padding: 5px 10px;

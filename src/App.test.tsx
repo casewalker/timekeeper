@@ -217,6 +217,22 @@ describe(App, () => {
       expect(screen.getByRole("timer")).toHaveTextContent("5:00");
       expect(getTimer("Sharing Time").getByLabelText("Minutes")).toBeDisabled();
     });
+
+    it("sets the right timer-color per phase", async () => {
+      const getTimerValue = () => screen.getByRole("timer").querySelector("span");
+
+      const user = await startTheTimer(0, 2, 0, 1);
+      expect(getTimerValue()).toHaveClass("timer-value--running");
+
+      await act(() => vi.advanceTimersByTime(1000));
+      expect(getTimerValue()).toHaveClass("timer-value--warning");
+
+      await act(() => vi.advanceTimersByTime(1000));
+      expect(getTimerValue()).toHaveClass("timer-value--finished");
+
+      await user.click(screen.getByRole("button", { name: "Edit" }));
+      expect(getTimerValue()).toHaveClass("timer-value--editing");
+    });
   });
 
   describe("hero text", () => {
