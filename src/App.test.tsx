@@ -1,4 +1,4 @@
-import { act, render, screen, within } from "@testing-library/react";
+import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import App from "@/App";
 
@@ -106,6 +106,14 @@ describe(App, () => {
       expect(screen.getByRole("button", { name: "Stop" })).toBeInTheDocument();
     });
 
+    it("Stop is replaced by Edit when time is up", async () => {
+      await startTheTimer(5, 0, 1, 0);
+      await act(() => vi.advanceTimersByTime(300000));
+      expect(screen.queryByRole("button", { name: "Start" })).not.toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "Restart" })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "Edit" })).toBeInTheDocument();
+    });
+
     it("disables the timer inputs", async () => {
       await startTheTimer(5, 0, 1, 0);
       expect(getTimer("Sharing Time").getByLabelText("Minutes")).toBeDisabled();
@@ -167,6 +175,20 @@ describe(App, () => {
       expect(screen.getByRole("button", { name: "Start" })).toBeInTheDocument();
       expect(getTimer("Sharing Time").getByLabelText("Minutes")).toBeEnabled();
       expect(getTimer("Sharing Time").getByLabelText("Minutes")).toHaveValue("5");
+    });
+
+    it("dismisses on a click over the disabled form, check form-buttons-don't-dismiss regression", async () => {
+      await startTheTimer(5, 0, 1, 0);
+      await act(() => vi.advanceTimersByTime(300000));
+      expect(screen.getByRole("timer")).toHaveTextContent("0:00");
+
+      // fireEvent, not userEvent; userEvent refuses to click inside a disabled fieldset
+      const formShield = document.querySelector(".timer-controller__click-shield");
+      assert(formShield !== null);
+      fireEvent.click(formShield);
+
+      expect(screen.getByRole("button", { name: "Start" })).toBeInTheDocument();
+      expect(getTimer("Sharing Time").getByLabelText("Minutes")).toBeEnabled();
     });
 
     it("clicking Restart at zero starts a fresh countdown instead of dismissing", async () => {

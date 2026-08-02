@@ -38,6 +38,16 @@
   }
 }
 
+/* A "click-shield" to catch clicks on top of disabled fieldset controls. */
+.timer-controller {
+  position: relative;
+}
+
+.timer-controller__click-shield {
+  position: absolute;
+  inset: 0;
+}
+
 .counter {
   font-size: 16px;
   padding: 5px 10px;

@@ -26,6 +26,7 @@ export default function App() {
   const [warningSeconds, setWarningSeconds] = useState(0);
   const { countdownPhase, remainingTimerSeconds, start, stop } = useCountdown();
   const isEditing = countdownPhase === "editing";
+  const isFinished = countdownPhase === "finished";
 
   const handleStart: SubmitEventHandler<HTMLFormElement> = (event) => {
     event.preventDefault();
@@ -119,7 +120,7 @@ export default function App() {
               Restart
             </button>
             <button type="button" onClick={() => stop()}>
-              Stop
+              {!isFinished ? "Stop" : "Edit"}
             </button>
           </>
         )}

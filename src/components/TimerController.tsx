@@ -55,10 +55,12 @@ export default function TimerController({
   };
 
   return (
-    <fieldset disabled={disabled}>
+    <fieldset className="timer-controller" disabled={disabled}>
       <legend>{label}</legend>
       <NumberField label="Minutes" value={minutes} onCommit={commitMinutes} onStep={stepMinutes} />
       <NumberField label="Seconds" value={seconds} onCommit={commitSeconds} onStep={stepSeconds} />
+      {/* Disabled controls swallow clicks, this shield lets them reach the document dismiss handler */}
+      {disabled && <div className="timer-controller__click-shield" aria-hidden="true" />}
     </fieldset>
   );
 }
