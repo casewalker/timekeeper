@@ -2,12 +2,13 @@ import type { SubmitEventHandler } from "react";
 import { useState } from "react";
 import TimerController from "@/components/TimerController";
 import useCountdown from "@/hooks/useCountdown";
+import { readStoredTimes, writeStoredTimes } from "@/util/storedTimes";
 import "@/App.css";
 
 const formatTimer = (totalSeconds: number) =>
   `${Math.floor(totalSeconds / 60)}:${String(totalSeconds % 60).padStart(2, "0")}`;
 
-const formatDuration = (seconds: number) => {
+const getReadableDurationFormat = (seconds: number) => {
   if (seconds === 0) return "0 Seconds";
 
   const pluralize = (string: string, n: number) => (n === 1 ? string : `${string}s`);
@@ -22,8 +23,8 @@ const formatDuration = (seconds: number) => {
 };
 
 export default function App() {
-  const [sharingSeconds, setSharingSeconds] = useState(0);
-  const [warningSeconds, setWarningSeconds] = useState(0);
+  const [sharingSeconds, setSharingSeconds] = useState(() => readStoredTimes().sharingSeconds);
+  const [warningSeconds, setWarningSeconds] = useState(() => readStoredTimes().warningSeconds);
   const { countdownPhase, remainingTimerSeconds, start, stop } = useCountdown();
   const warningExceedsSharing = warningSeconds > 0 && warningSeconds >= sharingSeconds;
   const isEditing = countdownPhase === "editing";
@@ -32,8 +33,10 @@ export default function App() {
   const handleStart: SubmitEventHandler<HTMLFormElement> = (event) => {
     event.preventDefault();
     // Invariant: 0 ≤ warning ≤ sharing; if warning is too big, silently drag it down upon starting
-    setWarningSeconds(Math.min(warningSeconds, sharingSeconds));
-    start(sharingSeconds, warningSeconds);
+    const actualWarningSeconds = Math.min(warningSeconds, sharingSeconds);
+    setWarningSeconds(actualWarningSeconds);
+    writeStoredTimes({ sharingSeconds, warningSeconds: actualWarningSeconds });
+    start(sharingSeconds, actualWarningSeconds);
   };
 
   type PhasedResources = {
@@ -54,7 +57,7 @@ export default function App() {
         return {
           countdownTime: remainingTimerSeconds,
           warningTextPrimary: "Warning",
-          warningTextSecondary: `Say: "${formatDuration(warningSeconds)}"`,
+          warningTextSecondary: `Say: "${getReadableDurationFormat(warningSeconds)}"`,
         };
       case "finished":
         return {
@@ -71,14 +74,14 @@ export default function App() {
   return (
     <main>
       {(countdownPhase === "warning" || countdownPhase === "finished") && (
-        // Key forces rerender on phase transitions, replaying the CSS animation once
+        // `key` forces rerender on phase transitions, replaying the CSS animation once
         <div
           key={countdownPhase}
           className={`phase-pulse phase-pulse--${countdownPhase}`}
           aria-hidden="true"
         />
       )}
-      <div role="timer" aria-label={formatDuration(phasedResources.countdownTime)}>
+      <div role="timer" aria-label={getReadableDurationFormat(phasedResources.countdownTime)}>
         <span className={`timer-value timer-value--${countdownPhase}`}>
           {formatTimer(phasedResources.countdownTime)}
         </span>
