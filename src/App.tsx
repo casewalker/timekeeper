@@ -7,11 +7,13 @@ import "@/App.css";
 const formatTimer = (totalSeconds: number) =>
   `${Math.floor(totalSeconds / 60)}:${String(totalSeconds % 60).padStart(2, "0")}`;
 
-const formatWarningText = (warningSeconds: number) => {
+const formatDuration = (seconds: number) => {
+  if (seconds === 0) return "0 Seconds";
+
   const pluralize = (string: string, n: number) => (n === 1 ? string : `${string}s`);
 
-  const numMinutes = Math.floor(warningSeconds / 60);
-  const numSeconds = warningSeconds % 60;
+  const numMinutes = Math.floor(seconds / 60);
+  const numSeconds = seconds % 60;
 
   const minutesPart = `${numMinutes > 0 ? numMinutes + " " + pluralize("Minute", numMinutes) : ""}`;
   const secondsPart = `${numSeconds > 0 ? numSeconds + " " + pluralize("Second", numSeconds) : ""}`;
@@ -53,7 +55,7 @@ export default function App() {
           timerColor: "orange",
           countdownTime: remainingTimerSeconds,
           warningTextPrimary: "Warning",
-          warningTextSecondary: `Say: "${formatWarningText(warningSeconds)}"`,
+          warningTextSecondary: `Say: "${formatDuration(warningSeconds)}"`,
         };
       case "finished":
         return {
@@ -75,12 +77,20 @@ export default function App() {
 
   return (
     <main>
-      <h1 role="timer" aria-label="Time remaining">
+      {(countdownPhase === "warning" || countdownPhase === "finished") && (
+        // Key forces rerender on phase transitions, replaying the CSS animation once
+        <div
+          key={countdownPhase}
+          className={`phase-pulse phase-pulse--${countdownPhase}`}
+          aria-hidden="true"
+        />
+      )}
+      <div role="timer" aria-label={formatDuration(phasedResources.countdownTime)}>
         <span style={{ color: phasedResources.timerColor }}>
           {formatTimer(phasedResources.countdownTime)}
         </span>
-      </h1>
-      <div>
+      </div>
+      <div role="alert">
         <p>{phasedResources.warningTextPrimary}</p>
         <p>{phasedResources.warningTextSecondary}</p>
       </div>

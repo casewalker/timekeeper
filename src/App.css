@@ -1,3 +1,43 @@
+/*
+ * One non-repeating pulse. As long as it is done just once, it avoids the
+ * photosensitivity risk (WCAG 2.3.1).
+ */
+.phase-pulse {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 10;
+  opacity: 0;
+  background-color: var(--pulse-tint);
+  animation: phase-pulse-flash 0.9s ease-out 1;
+}
+
+.phase-pulse--warning {
+  --pulse-tint: rgba(255, 176, 32, 0.11);
+}
+
+.phase-pulse--finished {
+  --pulse-tint: rgba(255, 69, 58, 0.11);
+}
+
+@keyframes phase-pulse-flash {
+  0% {
+    opacity: 0;
+  }
+  8% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .phase-pulse {
+    animation: none;
+  }
+}
+
 .counter {
   font-size: 16px;
   padding: 5px 10px;
