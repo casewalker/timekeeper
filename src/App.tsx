@@ -25,6 +25,7 @@ export default function App() {
   const [sharingSeconds, setSharingSeconds] = useState(0);
   const [warningSeconds, setWarningSeconds] = useState(0);
   const { countdownPhase, remainingTimerSeconds, start, stop } = useCountdown();
+  const warningExceedsSharing = warningSeconds > 0 && warningSeconds >= sharingSeconds;
   const isEditing = countdownPhase === "editing";
   const isFinished = countdownPhase === "finished";
 
@@ -107,8 +108,11 @@ export default function App() {
           label="Warning Time"
           currentTotalSeconds={warningSeconds}
           onUpdate={setWarningSeconds}
-          maxTotalSeconds={sharingSeconds}
+          maxTotalSeconds={59999} // 999 minutes, 59 seconds
           disabled={!isEditing}
+          error={
+            warningExceedsSharing ? "Warning Time can't be longer than Sharing Time" : undefined
+          }
         />
         {isEditing ? (
           <button type="submit" disabled={sharingSeconds === 0}>

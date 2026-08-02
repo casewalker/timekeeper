@@ -1,4 +1,5 @@
 import type { StepDirection } from "@/components/NumberField";
+import { useId } from "react";
 import NumberField from "@/components/NumberField";
 
 export interface TimerControllerProps {
@@ -7,6 +8,7 @@ export interface TimerControllerProps {
   onUpdate: (nextTotalSeconds: number) => void;
   maxTotalSeconds?: number;
   disabled?: boolean;
+  error?: string;
 }
 
 export default function TimerController({
@@ -15,7 +17,9 @@ export default function TimerController({
   onUpdate,
   maxTotalSeconds,
   disabled = false,
+  error,
 }: TimerControllerProps) {
+  const errorId = useId();
   const minutes = Math.floor(currentTotalSeconds / 60);
   const seconds = currentTotalSeconds % 60;
 
@@ -55,10 +59,19 @@ export default function TimerController({
   };
 
   return (
-    <fieldset className="timer-controller" disabled={disabled}>
+    <fieldset
+      className="timer-controller"
+      disabled={disabled}
+      aria-describedby={error ? errorId : undefined}
+    >
       <legend>{label}</legend>
       <NumberField label="Minutes" value={minutes} onCommit={commitMinutes} onStep={stepMinutes} />
       <NumberField label="Seconds" value={seconds} onCommit={commitSeconds} onStep={stepSeconds} />
+      {error && (
+        <p id={errorId} role="alert" className="timer-controller__error">
+          {error}
+        </p>
+      )}
       {/* Disabled controls swallow clicks, this shield lets them reach the document dismiss handler */}
       {disabled && <div className="timer-controller__click-shield" aria-hidden="true" />}
     </fieldset>

@@ -124,6 +124,31 @@ describe(TimerController, () => {
     expect(getSecondsInput()).toHaveValue("59");
   });
 
+  it("can show an error message and link it to the field group", () => {
+    render(
+      <TimerController
+        label="Timer"
+        currentTotalSeconds={0}
+        onUpdate={() => {}}
+        error="You have done goofed"
+      />,
+    );
+
+    const message = screen.getByRole("alert");
+    expect(message).toHaveTextContent("You have done goofed");
+    expect(screen.getByRole("group", { name: "Timer" })).toHaveAttribute(
+      "aria-describedby",
+      message.id,
+    );
+  });
+
+  it("doesn't render an error message when there is no error", () => {
+    render(<TimerController label="Timer" currentTotalSeconds={0} onUpdate={() => {}} />);
+
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    expect(screen.getByRole("group", { name: "Timer" })).not.toHaveAttribute("aria-describedby");
+  });
+
   it("disables both input fields and their buttons when disabled", () => {
     render(<TimerController label="Timer" currentTotalSeconds={0} onUpdate={() => {}} disabled />);
 

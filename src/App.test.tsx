@@ -43,17 +43,35 @@ describe(App, () => {
       expect(getTimer("Warning Time").getByLabelText("Seconds")).toHaveValue("49");
     });
 
-    // TODO: This is busted? Maybe it shouldn't be?
-    // it("lets the user enter Warning time > Sharing time", async () => {
-    //   const user = userEvent.setup();
-    //   render(<App/>);
-    //
-    //   await user.type(getTimer("Sharing Time").getByLabelText("Minutes"), "5{Enter}");
-    //   await user.type(getTimer("Warning Time").getByLabelText("Minutes"), "8{Enter}");
-    //
-    //   expect(getTimer("Warning Time").getByLabelText("Minutes")).toHaveValue("8");
-    //   expect(getTimer("Warning Time").getByLabelText("Seconds")).toHaveValue("0");
-    // });
+    it("lets the user enter Warning time ≥ Sharing time but shows a validation error", async () => {
+      const user = userEvent.setup();
+      render(<App />);
+      await user.type(getTimer("Sharing Time").getByLabelText("Minutes"), "5{Enter}");
+      await user.type(getTimer("Warning Time").getByLabelText("Minutes"), "8{Enter}");
+
+      expect(getTimer("Warning Time").getByLabelText("Minutes")).toHaveValue("8");
+      expect(getTimer("Warning Time").getByLabelText("Seconds")).toHaveValue("0");
+      expect(getTimer("Warning Time").getByRole("alert")).toBeInTheDocument();
+      expect(getTimer("Warning Time").getByRole("alert").textContent).toBe(
+        "Warning Time can't be longer than Sharing Time",
+      );
+    });
+
+    it("removes the validation error when Sharing is bumped higher than Warning", async () => {
+      const user = userEvent.setup();
+      render(<App />);
+      await user.type(getTimer("Sharing Time").getByLabelText("Minutes"), "5{Enter}");
+      await user.type(getTimer("Warning Time").getByLabelText("Minutes"), "5{Enter}");
+
+      expect(getTimer("Warning Time").getByRole("alert")).toBeInTheDocument();
+      expect(getTimer("Warning Time").getByRole("alert").textContent).toBe(
+        "Warning Time can't be longer than Sharing Time",
+      );
+
+      await user.clear(getTimer("Sharing Time").getByLabelText("Minutes"));
+      await user.type(getTimer("Sharing Time").getByLabelText("Minutes"), "6{Enter}");
+      expect(getTimer("Warning Time").queryByRole("alert")).not.toBeInTheDocument();
+    });
 
     it("drags the Warning timer down when starting with Warning > Sharing", async () => {
       const user = userEvent.setup();
