@@ -37,6 +37,30 @@ describe(NumberField, () => {
       expect(onCommit).toHaveBeenCalledExactlyOnceWith(23);
     });
 
+    it("performs stepUp when pressing the up arrow", async () => {
+      const user = userEvent.setup();
+      const onCommit = vi.fn();
+      const onStep = vi.fn();
+      render(<NumberField label="Seconds" value={30} onCommit={onCommit} onStep={onStep} />);
+
+      const input = screen.getByLabelText("Seconds");
+      await user.type(input, "{ArrowUp}");
+      expect(onStep).toHaveBeenCalledExactlyOnceWith("up");
+      expect(onCommit).not.toHaveBeenCalled();
+    });
+
+    it("performs stepDown when pressing the down arrow", async () => {
+      const user = userEvent.setup();
+      const onCommit = vi.fn();
+      const onStep = vi.fn();
+      render(<NumberField label="Seconds" value={30} onCommit={onCommit} onStep={onStep} />);
+
+      const input = screen.getByLabelText("Seconds");
+      await user.type(input, "{ArrowDown}");
+      expect(onStep).toHaveBeenCalledExactlyOnceWith("down");
+      expect(onCommit).not.toHaveBeenCalled();
+    });
+
     it("ignores non-numeric characters", async () => {
       const user = userEvent.setup();
       const onCommit = vi.fn();

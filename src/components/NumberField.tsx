@@ -45,6 +45,9 @@ export default function NumberField({
       // Avoid submitting the overarching form
       event.preventDefault();
       commitDraft();
+    } else if (event.key === "ArrowUp" || event.key === "ArrowDown") {
+      event.preventDefault();
+      onStep(event.key === "ArrowUp" ? "up" : "down");
     }
   };
 
