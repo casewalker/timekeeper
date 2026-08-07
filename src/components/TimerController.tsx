@@ -65,8 +65,20 @@ export default function TimerController({
       aria-describedby={error ? errorId : undefined}
     >
       <legend>{label}</legend>
-      <NumberField label="Minutes" value={minutes} onCommit={commitMinutes} onStep={stepMinutes} />
-      <NumberField label="Seconds" value={seconds} onCommit={commitSeconds} onStep={stepSeconds} />
+      <NumberField
+        label="Minutes"
+        value={minutes}
+        onCommit={commitMinutes}
+        onStep={stepMinutes}
+        disabled={disabled}
+      />
+      <NumberField
+        label="Seconds"
+        value={seconds}
+        onCommit={commitSeconds}
+        onStep={stepSeconds}
+        disabled={disabled}
+      />
       {error && (
         <p id={errorId} role="alert" className="timer-controller__error">
           {error}
