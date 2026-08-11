@@ -63,7 +63,7 @@ export default function NumberField({
   const unitClasses = `${unitBase} ${disabled ? unitDisabled : unitEnabled}`;
 
   const inputClasses =
-    "w-12 border-0 bg-transparent py-1.5 pr-2.5 pl-1 text-right text-lg " +
+    "w-12 py-1.5 pr-2.5 pl-1 text-right text-lg " +
     "tabular-nums outline-none disabled:cursor-not-allowed " +
     (disabled
       ? "text-neutral-400 dark:text-neutral-600"

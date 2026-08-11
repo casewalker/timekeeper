@@ -60,7 +60,7 @@ export default function TimerController({
 
   return (
     <fieldset
-      className="relative m-0 min-w-0 border-0 p-0"
+      className="relative min-w-0"
       disabled={disabled}
       aria-describedby={error ? errorId : undefined}
     >
