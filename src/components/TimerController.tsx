@@ -1,5 +1,5 @@
-import type { StepDirection } from "@/components/NumberField";
 import { useId } from "react";
+import type { StepDirection } from "@/components/NumberField";
 import NumberField from "@/components/NumberField";
 
 export interface TimerControllerProps {
@@ -60,32 +60,56 @@ export default function TimerController({
 
   return (
     <fieldset
-      className="timer-controller"
+      className="relative m-0 min-w-0 border-0 p-0"
       disabled={disabled}
       aria-describedby={error ? errorId : undefined}
     >
-      <legend>{label}</legend>
-      <NumberField
-        label="Minutes"
-        value={minutes}
-        onCommit={commitMinutes}
-        onStep={stepMinutes}
-        disabled={disabled}
-      />
-      <NumberField
-        label="Seconds"
-        value={seconds}
-        onCommit={commitSeconds}
-        onStep={stepSeconds}
-        disabled={disabled}
-      />
-      {error && (
-        <p id={errorId} role="alert" className="timer-controller__error">
-          {error}
-        </p>
-      )}
-      {/* Disabled controls swallow clicks, this shield lets them reach the document dismiss handler */}
-      {disabled && <div className="timer-controller__click-shield" aria-hidden="true" />}
+      {/* The real legend names the group, but the visible title is a plain span to be styled */}
+      <legend className="sr-only">{label}</legend>
+      <div className="flex items-baseline justify-end gap-3">
+        <span
+          aria-hidden="true"
+          className={`text-2xl font-medium ${
+            disabled
+              ? "text-neutral-400 dark:text-neutral-600"
+              : "text-neutral-600 dark:text-neutral-300"
+          }`}
+        >
+          {label}:
+        </span>
+        <div className="flex flex-col items-start gap-1">
+          <div className="flex items-baseline gap-1.5">
+            <NumberField
+              label="Minutes"
+              value={minutes}
+              onCommit={commitMinutes}
+              onStep={stepMinutes}
+              disabled={disabled}
+            />
+            <span aria-hidden="true" className="text-2xl text-neutral-400 dark:text-neutral-500">
+              :
+            </span>
+            <NumberField
+              label="Seconds"
+              value={seconds}
+              onCommit={commitSeconds}
+              onStep={stepSeconds}
+              disabled={disabled}
+            />
+          </div>
+          {error && (
+            <p
+              id={errorId}
+              role="alert"
+              className="max-w-56 text-xs text-red-600 dark:text-red-400"
+            >
+              {error}
+            </p>
+          )}
+        </div>
+      </div>
+      {/* Disabled controls swallow clicks, this shield lets them reach the 'document dismiss' handler */}
+      {disabled && <div className="absolute inset-0" aria-hidden="true" />}
     </fieldset>
   );
 }

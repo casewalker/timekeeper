@@ -7,8 +7,8 @@ vi.useFakeTimers({ shouldAdvanceTime: true });
 
 /** Clear the timer. */
 const clearTheTimer = async (user: UserEvent) => {
-  await user.clear(getTimer("Sharing Time").getByLabelText("Minutes"));
-  await user.clear(getTimer("Sharing Time").getByLabelText("Seconds"));
+  await user.clear(getTimer("Share Time").getByLabelText("Minutes"));
+  await user.clear(getTimer("Share Time").getByLabelText("Seconds"));
   await user.clear(getTimer("Warning Time").getByLabelText("Minutes"));
   await user.clear(getTimer("Warning Time").getByLabelText("Seconds"));
   await user.tab();
@@ -23,8 +23,8 @@ const startTheTimer = async (
   warningSeconds: number,
 ) => {
   await clearTheTimer(user);
-  await user.type(getTimer("Sharing Time").getByLabelText("Minutes"), `${sharingMinutes}{Enter}`);
-  await user.type(getTimer("Sharing Time").getByLabelText("Seconds"), `${sharingSeconds}{Enter}`);
+  await user.type(getTimer("Share Time").getByLabelText("Minutes"), `${sharingMinutes}{Enter}`);
+  await user.type(getTimer("Share Time").getByLabelText("Seconds"), `${sharingSeconds}{Enter}`);
   await user.type(getTimer("Warning Time").getByLabelText("Minutes"), `${warningMinutes}{Enter}`);
   await user.type(getTimer("Warning Time").getByLabelText("Seconds"), `${warningSeconds}{Enter}`);
 
@@ -37,11 +37,11 @@ describe(App, () => {
   describe("setup", () => {
     it("renders the Sharing and Warning timer controllers with default values", async () => {
       render(<App />);
-      expect(screen.getByRole("group", { name: "Sharing Time" })).toBeInTheDocument();
+      expect(screen.getByRole("group", { name: "Share Time" })).toBeInTheDocument();
       expect(screen.getByRole("group", { name: "Warning Time" })).toBeInTheDocument();
 
-      expect(getTimer("Sharing Time").getByLabelText("Minutes")).toHaveValue("2");
-      expect(getTimer("Sharing Time").getByLabelText("Seconds")).toHaveValue("30");
+      expect(getTimer("Share Time").getByLabelText("Minutes")).toHaveValue("2");
+      expect(getTimer("Share Time").getByLabelText("Seconds")).toHaveValue("30");
       expect(getTimer("Warning Time").getByLabelText("Minutes")).toHaveValue("1");
       expect(getTimer("Warning Time").getByLabelText("Seconds")).toHaveValue("0");
     });
@@ -51,13 +51,13 @@ describe(App, () => {
       render(<App />);
       await clearTheTimer(user);
 
-      await user.type(getTimer("Sharing Time").getByLabelText("Minutes"), "2{Enter}");
-      await user.type(getTimer("Sharing Time").getByLabelText("Seconds"), "12{Enter}");
+      await user.type(getTimer("Share Time").getByLabelText("Minutes"), "2{Enter}");
+      await user.type(getTimer("Share Time").getByLabelText("Seconds"), "12{Enter}");
       await user.type(getTimer("Warning Time").getByLabelText("Minutes"), "1{Enter}");
       await user.type(getTimer("Warning Time").getByLabelText("Seconds"), "49{Enter}");
 
-      expect(getTimer("Sharing Time").getByLabelText("Minutes")).toHaveValue("2");
-      expect(getTimer("Sharing Time").getByLabelText("Seconds")).toHaveValue("12");
+      expect(getTimer("Share Time").getByLabelText("Minutes")).toHaveValue("2");
+      expect(getTimer("Share Time").getByLabelText("Seconds")).toHaveValue("12");
       expect(getTimer("Warning Time").getByLabelText("Minutes")).toHaveValue("1");
       expect(getTimer("Warning Time").getByLabelText("Seconds")).toHaveValue("49");
     });
@@ -66,14 +66,14 @@ describe(App, () => {
       const user = userEvent.setup({ delay: null });
       render(<App />);
       await clearTheTimer(user);
-      await user.type(getTimer("Sharing Time").getByLabelText("Minutes"), "5{Enter}");
+      await user.type(getTimer("Share Time").getByLabelText("Minutes"), "5{Enter}");
       await user.type(getTimer("Warning Time").getByLabelText("Minutes"), "8{Enter}");
 
       expect(getTimer("Warning Time").getByLabelText("Minutes")).toHaveValue("8");
       expect(getTimer("Warning Time").getByLabelText("Seconds")).toHaveValue("0");
       expect(getTimer("Warning Time").getByRole("alert")).toBeInTheDocument();
       expect(getTimer("Warning Time").getByRole("alert").textContent).toBe(
-        "Warning Time can't be longer than Sharing Time",
+        "Warning Time can't be longer than Share Time",
       );
     });
 
@@ -81,16 +81,16 @@ describe(App, () => {
       const user = userEvent.setup({ delay: null });
       render(<App />);
       await clearTheTimer(user);
-      await user.type(getTimer("Sharing Time").getByLabelText("Minutes"), "5{Enter}");
+      await user.type(getTimer("Share Time").getByLabelText("Minutes"), "5{Enter}");
       await user.type(getTimer("Warning Time").getByLabelText("Minutes"), "5{Enter}");
 
       expect(getTimer("Warning Time").getByRole("alert")).toBeInTheDocument();
       expect(getTimer("Warning Time").getByRole("alert").textContent).toBe(
-        "Warning Time can't be longer than Sharing Time",
+        "Warning Time can't be longer than Share Time",
       );
 
-      await user.clear(getTimer("Sharing Time").getByLabelText("Minutes"));
-      await user.type(getTimer("Sharing Time").getByLabelText("Minutes"), "6{Enter}");
+      await user.clear(getTimer("Share Time").getByLabelText("Minutes"));
+      await user.type(getTimer("Share Time").getByLabelText("Minutes"), "6{Enter}");
       expect(getTimer("Warning Time").queryByRole("alert")).not.toBeInTheDocument();
     });
 
@@ -99,7 +99,7 @@ describe(App, () => {
       render(<App />);
 
       await clearTheTimer(user);
-      await user.type(getTimer("Sharing Time").getByLabelText("Minutes"), "2{Enter}");
+      await user.type(getTimer("Share Time").getByLabelText("Minutes"), "2{Enter}");
       await user.type(getTimer("Warning Time").getByLabelText("Minutes"), "6{Enter}");
       await user.click(screen.getByRole("button", { name: "Start" }));
 
@@ -112,7 +112,7 @@ describe(App, () => {
       render(<App />);
 
       await clearTheTimer(user);
-      await user.type(getTimer("Sharing Time").getByLabelText("Minutes"), "4{Enter}");
+      await user.type(getTimer("Share Time").getByLabelText("Minutes"), "4{Enter}");
       await user.type(getTimer("Warning Time").getByLabelText("Minutes"), "3{Enter}");
 
       expect(getTimer("Warning Time").getByLabelText("Minutes")).toHaveValue("3");
@@ -123,13 +123,13 @@ describe(App, () => {
       render(<App />);
       await clearTheTimer(user);
 
-      expect(getTimer("Sharing Time").getByLabelText("Minutes")).toHaveValue("0");
-      expect(getTimer("Sharing Time").getByLabelText("Seconds")).toHaveValue("0");
+      expect(getTimer("Share Time").getByLabelText("Minutes")).toHaveValue("0");
+      expect(getTimer("Share Time").getByLabelText("Seconds")).toHaveValue("0");
       expect(getTimer("Warning Time").getByLabelText("Minutes")).toHaveValue("0");
       expect(getTimer("Warning Time").getByLabelText("Seconds")).toHaveValue("0");
       expect(screen.getByRole("button", { name: "Start" })).toBeDisabled();
 
-      await user.type(getTimer("Sharing Time").getByLabelText("Minutes"), "99{Enter}");
+      await user.type(getTimer("Share Time").getByLabelText("Minutes"), "99{Enter}");
       expect(screen.getByRole("button", { name: "Start" })).toBeEnabled();
     });
 
@@ -138,11 +138,11 @@ describe(App, () => {
       render(<App />);
       await clearTheTimer(user);
 
-      await user.type(getTimer("Sharing Time").getByLabelText("Minutes"), "44{Enter}");
+      await user.type(getTimer("Share Time").getByLabelText("Minutes"), "44{Enter}");
 
       expect(screen.getByRole("button", { name: "Start" })).toBeInTheDocument();
       expect(screen.getByRole("button", { name: "Start" })).toBeEnabled();
-      expect(getTimer("Sharing Time").getByLabelText("Minutes")).toBeEnabled();
+      expect(getTimer("Share Time").getByLabelText("Minutes")).toBeEnabled();
     });
   });
 
@@ -170,7 +170,7 @@ describe(App, () => {
       const user = userEvent.setup({ delay: null });
       render(<App />);
       await startTheTimer(user, 5, 0, 1, 0);
-      expect(getTimer("Sharing Time").getByLabelText("Minutes")).toBeDisabled();
+      expect(getTimer("Share Time").getByLabelText("Minutes")).toBeDisabled();
       expect(getTimer("Warning Time").getByLabelText("Seconds")).toBeDisabled();
     });
 
@@ -197,7 +197,7 @@ describe(App, () => {
       await user.click(screen.getByRole("button", { name: "Restart" }));
       expect(screen.getByRole("timer")).toHaveTextContent("5:00");
 
-      expect(getTimer("Sharing Time").getByLabelText("Minutes")).toBeDisabled();
+      expect(getTimer("Share Time").getByLabelText("Minutes")).toBeDisabled();
       expect(getTimer("Warning Time").getByLabelText("Seconds")).toBeDisabled();
     });
 
@@ -211,10 +211,10 @@ describe(App, () => {
 
       expect(screen.getByRole("button", { name: "Start" })).toBeInTheDocument();
       expect(screen.getByRole("button", { name: "Start" })).toBeEnabled();
-      expect(getTimer("Sharing Time").getByLabelText("Minutes")).toHaveValue("5");
-      expect(getTimer("Sharing Time").getByLabelText("Minutes")).toBeEnabled();
-      expect(getTimer("Sharing Time").getByLabelText("Seconds")).toHaveValue("0");
-      expect(getTimer("Sharing Time").getByLabelText("Seconds")).toBeEnabled();
+      expect(getTimer("Share Time").getByLabelText("Minutes")).toHaveValue("5");
+      expect(getTimer("Share Time").getByLabelText("Minutes")).toBeEnabled();
+      expect(getTimer("Share Time").getByLabelText("Seconds")).toHaveValue("0");
+      expect(getTimer("Share Time").getByLabelText("Seconds")).toBeEnabled();
       expect(getTimer("Warning Time").getByLabelText("Minutes")).toHaveValue("1");
       expect(getTimer("Warning Time").getByLabelText("Minutes")).toBeEnabled();
       expect(getTimer("Warning Time").getByLabelText("Seconds")).toHaveValue("0");
@@ -235,24 +235,29 @@ describe(App, () => {
 
       await user.click(document.body);
       expect(screen.getByRole("button", { name: "Start" })).toBeInTheDocument();
-      expect(getTimer("Sharing Time").getByLabelText("Minutes")).toBeEnabled();
-      expect(getTimer("Sharing Time").getByLabelText("Minutes")).toHaveValue("5");
+      expect(getTimer("Share Time").getByLabelText("Minutes")).toBeEnabled();
+      expect(getTimer("Share Time").getByLabelText("Minutes")).toHaveValue("5");
     });
 
-    it("dismisses on a click over the disabled form, check form-buttons-don't-dismiss regression", async () => {
+    it("also dismisses on a click on the disabled form, check the form-buttons-don't-dismiss regression", async () => {
       const user = userEvent.setup({ delay: null });
       render(<App />);
+      let formShield;
+      formShield = document.querySelector("div.absolute.inset-0");
+      assert(formShield === null);
+
       await startTheTimer(user, 5, 0, 1, 0);
+      formShield = document.querySelector("div.absolute.inset-0");
+      assert(formShield !== null);
+
       await act(() => vi.advanceTimersByTime(300000));
       expect(screen.getByRole("timer")).toHaveTextContent("0:00");
 
       // fireEvent, not userEvent; userEvent refuses to click inside a disabled fieldset
-      const formShield = document.querySelector(".timer-controller__click-shield");
-      assert(formShield !== null);
       fireEvent.click(formShield);
 
       expect(screen.getByRole("button", { name: "Start" })).toBeInTheDocument();
-      expect(getTimer("Sharing Time").getByLabelText("Minutes")).toBeEnabled();
+      expect(getTimer("Share Time").getByLabelText("Minutes")).toBeEnabled();
     });
 
     it("clicking Restart at zero starts a fresh countdown instead of dismissing", async () => {
@@ -263,7 +268,7 @@ describe(App, () => {
 
       await user.click(screen.getByRole("button", { name: "Restart" }));
       expect(screen.getByRole("timer")).toHaveTextContent("5:00");
-      expect(getTimer("Sharing Time").getByLabelText("Minutes")).toBeDisabled();
+      expect(getTimer("Share Time").getByLabelText("Minutes")).toBeDisabled();
     });
 
     it("sets the right timer-color per phase", async () => {

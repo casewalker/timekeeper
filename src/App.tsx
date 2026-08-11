@@ -92,7 +92,7 @@ export default function App() {
       </div>
       <form onSubmit={handleStart}>
         <TimerController
-          label="Sharing Time"
+          label="Share Time"
           currentTotalSeconds={sharingSeconds}
           onUpdate={setSharingSeconds}
           maxTotalSeconds={59999} // 999 minutes, 59 seconds
@@ -104,9 +104,7 @@ export default function App() {
           onUpdate={setWarningSeconds}
           maxTotalSeconds={59999} // 999 minutes, 59 seconds
           disabled={!isEditing}
-          error={
-            warningExceedsSharing ? "Warning Time can't be longer than Sharing Time" : undefined
-          }
+          error={warningExceedsSharing ? "Warning Time can't be longer than Share Time" : undefined}
         />
         {isEditing ? (
           <button type="submit" disabled={sharingSeconds === 0}>

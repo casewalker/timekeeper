@@ -38,16 +38,6 @@
   }
 }
 
-/* A "click-shield" to catch clicks on top of disabled fieldset controls. */
-.timer-controller {
-  position: relative;
-}
-
-.timer-controller__click-shield {
-  position: absolute;
-  inset: 0;
-}
-
 .timer-value--editing {
   color: #666666;
 }
