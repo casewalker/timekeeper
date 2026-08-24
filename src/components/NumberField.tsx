@@ -9,6 +9,7 @@ export interface NumberFieldProps {
   value: number;
   onCommit: (next: number) => void;
   onStep: (direction: StepDirection) => void;
+  unit: string;
   disabled?: boolean;
 }
 
@@ -19,6 +20,7 @@ export default function NumberField({
   value,
   onCommit,
   onStep,
+  unit,
   disabled = false,
 }: NumberFieldProps) {
   const [draft, setDraft] = useState<string | null>(null);
@@ -51,42 +53,32 @@ export default function NumberField({
     }
   };
 
-  // Fused unit shell
-  const unitBase = "inline-flex items-stretch rounded-lg border bg-white dark:bg-neutral-900";
-  const unitEnabled =
-    "border-neutral-300 dark:border-neutral-600 transition " +
-    "shadow-[0_1px_2px_rgba(20,22,30,0.12)] hover:shadow-[0_3px_8px_rgba(20,22,30,0.17)] " +
-    "dark:shadow-[0_1px_2px_rgba(0,0,0,0.5)] dark:hover:shadow-[0_3px_10px_rgba(0,0,0,0.6)] " +
+  // The input field itself — the one obviously-interactive box
+  const boxBase =
+    "inline-flex items-baseline rounded-lg border bg-white px-2.5 py-1.5 dark:bg-neutral-900";
+  const boxEnabled =
+    "border-neutral-300 dark:border-neutral-600 " +
     "focus-within:ring-2 focus-within:ring-neutral-900 dark:focus-within:ring-neutral-100";
-  const unitDisabled = "border-neutral-200 dark:border-neutral-800";
-
-  const unitClasses = `${unitBase} ${disabled ? unitDisabled : unitEnabled}`;
+  const boxDisabled = "border-neutral-200 dark:border-neutral-800";
+  const boxClasses = `${boxBase} ${disabled ? boxDisabled : boxEnabled}`;
 
   const inputClasses =
-    "w-12 py-1.5 pr-2.5 pl-1 text-right text-lg " +
-    "tabular-nums outline-none disabled:cursor-not-allowed " +
+    "peer w-8 text-right text-lg tabular-nums outline-none disabled:cursor-not-allowed " +
+    (disabled ? "text-neutral-400 dark:text-neutral-600" : "text-neutral-900 dark:text-neutral-100");
+
+  // Chevrons float chromeless beside the field, dimmed until hovered
+  const chevronButton =
+    "flex items-center justify-center px-1 py-1 transition " +
     (disabled
-      ? "text-neutral-400 dark:text-neutral-600"
-      : "text-neutral-900 dark:text-neutral-100");
-
-  // Chevron buttons
-  const dividerBorder = "border-neutral-300 dark:border-neutral-600";
-  const stepButtonBase = "flex flex-1 items-center justify-center px-1 transition";
-  const stepButtonEnabled =
-    "bg-neutral-200 dark:bg-neutral-700 text-neutral-500 dark:text-neutral-200 " +
-    "hover:bg-neutral-300 dark:hover:bg-neutral-600 " +
-    "hover:text-neutral-800 dark:hover:text-neutral-100 " +
-    "active:bg-[#c4c4c4] active:shadow-[inset_0_1px_2px_rgba(20,22,30,0.18)] " +
-    "dark:active:bg-neutral-500 dark:active:shadow-[inset_0_1px_2px_rgba(0,0,0,0.4)]";
-  const stepButtonDisabled = "text-neutral-300 dark:text-neutral-700 border-transparent";
-
-  const buttonClasses = `${stepButtonBase} ${
-    disabled ? stepButtonDisabled : `${stepButtonEnabled} ${dividerBorder}`
-  }`;
+      ? "cursor-not-allowed text-neutral-200 dark:text-neutral-700"
+      : "cursor-pointer rounded text-neutral-400 hover:bg-neutral-100 hover:text-neutral-800 dark:text-neutral-500 dark:hover:bg-neutral-800 dark:hover:text-neutral-100");
 
   return (
-    <div className="flex flex-col items-center gap-px">
-      <div className={unitClasses}>
+    <div className="inline-flex items-center my-0.5">
+      <label htmlFor={inputId} className="sr-only">
+        {label}
+      </label>
+      <div className={boxClasses}>
         <input
           id={inputId}
           type="text"
@@ -98,33 +90,33 @@ export default function NumberField({
           onBlur={commitDraft}
           className={inputClasses}
         />
-        <div className={`flex flex-col ${disabled ? "" : `border-l ${dividerBorder}`}`}>
-          <button
-            type="button"
-            aria-label={`Increment ${label}`}
-            disabled={disabled}
-            onClick={() => onStep("up")}
-            className={`${buttonClasses} rounded-tr-lg border-b`}
-          >
-            <ChevronUp className="h-3.5 w-3.5" />
-          </button>
-          <button
-            type="button"
-            aria-label={`Decrement ${label}`}
-            disabled={disabled}
-            onClick={() => onStep("down")}
-            className={`${buttonClasses} rounded-br-lg border-t`}
-          >
-            <ChevronDown className="h-3.5 w-3.5" />
-          </button>
-        </div>
+        <span
+          aria-hidden="true"
+          className="ml-1 text-sm text-neutral-400 peer-focus:invisible dark:text-neutral-500"
+        >
+          {unit}
+        </span>
       </div>
-      <label
-        htmlFor={inputId}
-        className="text-xs font-medium text-neutral-500 dark:text-neutral-400"
-      >
-        {label}
-      </label>
+      <div className="flex flex-col">
+        <button
+          type="button"
+          aria-label={`Increment ${label}`}
+          disabled={disabled}
+          onClick={() => onStep("up")}
+          className={chevronButton}
+        >
+          <ChevronUp className="h-2 w-2 stroke-[5px]" />
+        </button>
+        <button
+          type="button"
+          aria-label={`Decrement ${label}`}
+          disabled={disabled}
+          onClick={() => onStep("down")}
+          className={chevronButton}
+        >
+          <ChevronDown className="h-2 w-2 stroke-[5px]" />
+        </button>
+      </div>
     </div>
   );
 }

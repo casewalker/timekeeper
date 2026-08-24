@@ -66,7 +66,7 @@ export default function TimerController({
     >
       {/* The real legend names the group, but the visible title is a plain span to be styled */}
       <legend className="sr-only">{label}</legend>
-      <div className="flex items-baseline justify-end gap-3">
+      <div className="flex items-baseline justify-center gap-3">
         <span
           aria-hidden="true"
           className={`text-2xl font-medium ${
@@ -78,19 +78,18 @@ export default function TimerController({
           {label}:
         </span>
         <div className="flex flex-col items-start gap-1">
-          <div className="flex items-baseline gap-1.5">
+          <div className="flex items-baseline gap-3">
             <NumberField
               label="Minutes"
+              unit="min"
               value={minutes}
               onCommit={commitMinutes}
               onStep={stepMinutes}
               disabled={disabled}
             />
-            <span aria-hidden="true" className="text-2xl text-neutral-400 dark:text-neutral-500">
-              :
-            </span>
             <NumberField
               label="Seconds"
+              unit="sec"
               value={seconds}
               onCommit={commitSeconds}
               onStep={stepSeconds}
