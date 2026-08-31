@@ -23,7 +23,7 @@ describe(TimerController, () => {
   it("correctly splits the total into minutes and seconds", () => {
     render(<MockTimerApp initialTotal={125} />);
     expect(getMinutesInput()).toHaveValue("2");
-    expect(getSecondsInput()).toHaveValue("5");
+    expect(getSecondsInput()).toHaveValue("05");
   });
 
   it("stores valid minutes and seconds as-is", async () => {
@@ -47,14 +47,14 @@ describe(TimerController, () => {
 
     await user.click(screen.getByRole("button", { name: "Increment Seconds" }));
     expect(getMinutesInput()).toHaveValue("3");
-    expect(getSecondsInput()).toHaveValue("0");
+    expect(getSecondsInput()).toHaveValue("00");
   });
 
   it("rounds the minutes down correctly (decrement seconds button)", async () => {
     const user = userEvent.setup();
     render(<MockTimerApp initialTotal={121} />);
     expect(getMinutesInput()).toHaveValue("2");
-    expect(getSecondsInput()).toHaveValue("1");
+    expect(getSecondsInput()).toHaveValue("01");
 
     await user.click(screen.getByRole("button", { name: "Decrement Seconds" }));
     await user.click(screen.getByRole("button", { name: "Decrement Seconds" }));
@@ -97,7 +97,7 @@ describe(TimerController, () => {
     const user = userEvent.setup();
     render(<MockTimerApp initialTotal={180} />);
     expect(getMinutesInput()).toHaveValue("3");
-    expect(getSecondsInput()).toHaveValue("0");
+    expect(getSecondsInput()).toHaveValue("00");
 
     await user.type(getSecondsInput(), "75{Enter}");
     expect(getMinutesInput()).toHaveValue("3");
@@ -110,7 +110,7 @@ describe(TimerController, () => {
 
     await user.click(screen.getByRole("button", { name: "Decrement Seconds" }));
     expect(getMinutesInput()).toHaveValue("0");
-    expect(getSecondsInput()).toHaveValue("0");
+    expect(getSecondsInput()).toHaveValue("00");
   });
 
   it("clamps the total to maxTotalSeconds", async () => {

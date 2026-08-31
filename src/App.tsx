@@ -2,25 +2,26 @@ import type { SubmitEventHandler } from "react";
 import { useState } from "react";
 import TimerController from "@/components/TimerController";
 import useCountdown from "@/hooks/useCountdown";
+import { getReadableDurationFormat } from "@/util/formatDuration";
 import { readStoredTimes, writeStoredTimes } from "@/util/storedTimes";
 import "@/App.css";
 
 const formatTimer = (totalSeconds: number) =>
   `${Math.floor(totalSeconds / 60)}:${String(totalSeconds % 60).padStart(2, "0")}`;
 
-const getReadableDurationFormat = (seconds: number) => {
-  if (seconds === 0) return "0 Seconds";
-
-  const pluralize = (string: string, n: number) => (n === 1 ? string : `${string}s`);
-
-  const numMinutes = Math.floor(seconds / 60);
-  const numSeconds = seconds % 60;
-
-  const minutesPart = `${numMinutes > 0 ? numMinutes + " " + pluralize("Minute", numMinutes) : ""}`;
-  const secondsPart = `${numSeconds > 0 ? numSeconds + " " + pluralize("Second", numSeconds) : ""}`;
-
-  return `${minutesPart}${numMinutes > 0 && numSeconds > 0 ? " and " : ""}${secondsPart}`;
-};
+// Pill button styles
+const pillBase =
+  "cursor-pointer rounded-full px-8 py-3 text-base transition-colors " +
+  "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-800 " +
+  "disabled:cursor-not-allowed dark:focus-visible:outline-stone-100";
+const pillPrimary =
+  `${pillBase} bg-stone-900 text-stone-50 hover:bg-stone-700 ` +
+  "disabled:bg-stone-300 disabled:text-stone-500 " +
+  "dark:bg-stone-100 dark:text-stone-900 dark:hover:bg-stone-300 " +
+  "dark:disabled:bg-stone-800 dark:disabled:text-stone-600";
+const pillSecondary =
+  `${pillBase} border border-stone-300 text-stone-700 hover:border-stone-400 ` +
+  "hover:bg-stone-500/10 dark:border-stone-700 dark:text-stone-300 dark:hover:border-stone-500";
 
 export default function App() {
   const [sharingSeconds, setSharingSeconds] = useState(() => readStoredTimes().sharingSeconds);
@@ -39,88 +40,94 @@ export default function App() {
     start(sharingSeconds, actualWarningSeconds);
   };
 
-  type PhasedResources = {
-    countdownTime: number;
-    warningTextPrimary: string;
-    warningTextSecondary: string;
-  };
+  type PhasedResources = { countdownTime: number; sayLine: string };
 
   const phasedResources = (function (): PhasedResources {
     switch (countdownPhase) {
       case "running":
-        return {
-          countdownTime: remainingTimerSeconds,
-          warningTextPrimary: "",
-          warningTextSecondary: "",
-        };
+        return { countdownTime: remainingTimerSeconds, sayLine: "" };
       case "warning":
         return {
           countdownTime: remainingTimerSeconds,
-          warningTextPrimary: "Warning",
-          warningTextSecondary: `Say: "${getReadableDurationFormat(warningSeconds)}"`,
+          sayLine: `Say: "${getReadableDurationFormat(warningSeconds)}"`,
         };
       case "finished":
-        return {
-          countdownTime: remainingTimerSeconds,
-          warningTextPrimary: "Finished!",
-          warningTextSecondary: 'Say: "Time!"',
-        };
-      case "editing":
+        return { countdownTime: remainingTimerSeconds, sayLine: 'Say: "Time!"' };
       default:
-        return { countdownTime: sharingSeconds, warningTextPrimary: "", warningTextSecondary: "" };
+        return { countdownTime: 0, sayLine: "" };
     }
   })();
 
   return (
-    <main>
-      {(countdownPhase === "warning" || countdownPhase === "finished") && (
-        // `key` forces rerender on phase transitions, replaying the CSS animation once
-        <div
-          key={countdownPhase}
-          className={`phase-pulse phase-pulse--${countdownPhase}`}
-          aria-hidden="true"
-        />
-      )}
-      <div role="timer" aria-label={getReadableDurationFormat(phasedResources.countdownTime)}>
-        <span className={`timer-value timer-value--${countdownPhase}`}>
-          {formatTimer(phasedResources.countdownTime)}
-        </span>
-      </div>
-      <div role="alert">
-        <p>{phasedResources.warningTextPrimary}</p>
-        <p>{phasedResources.warningTextSecondary}</p>
-      </div>
-      <form onSubmit={handleStart}>
-        <TimerController
-          label="Share Time"
-          currentTotalSeconds={sharingSeconds}
-          onUpdate={setSharingSeconds}
-          maxTotalSeconds={59999} // 999 minutes, 59 seconds
-          disabled={!isEditing}
-        />
-        <TimerController
-          label="Warning Time"
-          currentTotalSeconds={warningSeconds}
-          onUpdate={setWarningSeconds}
-          maxTotalSeconds={59999} // 999 minutes, 59 seconds
-          disabled={!isEditing}
-          error={warningExceedsSharing ? "Warning Time can't be longer than Share Time" : undefined}
-        />
-        {isEditing ? (
-          <button type="submit" disabled={sharingSeconds === 0}>
-            Start
-          </button>
-        ) : (
-          <>
-            <button type="button" onClick={() => start(sharingSeconds, warningSeconds)}>
+    <main
+      className={`mx-auto flex w-full max-w-md flex-1 flex-col items-center justify-center px-6 py-12 text-center ${
+        isEditing ? "gap-8" : "gap-12"
+      }`}
+    >
+      {!isEditing ? (
+        <>
+          {/* Timer phase-change pulse */}
+          {(countdownPhase === "warning" || countdownPhase === "finished") && (
+            <div
+              // `key` forces rerender on phase transitions, replaying the CSS animation once
+              key={countdownPhase}
+              className={`phase-pulse phase-pulse--${countdownPhase}`}
+              aria-hidden="true"
+            />
+          )}
+          {/* Timer */}
+          <div className="flex flex-col items-center gap-4">
+            <div className="flex min-h-10 flex-col justify-end" role="alert">
+              <p className="font-numeral text-3xl font-bold text-stone-800 dark:text-stone-100">
+                {phasedResources.sayLine}
+              </p>
+            </div>
+            <div role="timer" aria-label={getReadableDurationFormat(phasedResources.countdownTime)}>
+              <span
+                className={`timer-value timer-value--${countdownPhase} font-numeral text-[clamp(3.5rem,min(26vw,22vh),8rem)] leading-none lining-nums tabular-nums`}
+              >
+                {formatTimer(phasedResources.countdownTime)}
+              </span>
+            </div>
+          </div>
+          {/* Control buttons */}
+          <div className="flex w-full max-w-xs items-center justify-center gap-3">
+            <button
+              type="button"
+              onClick={() => start(sharingSeconds, warningSeconds)}
+              className={`${isFinished ? pillPrimary : pillSecondary} flex-1`}
+            >
               Restart
             </button>
-            <button type="button" onClick={() => stop()}>
-              {!isFinished ? "Stop" : "Edit"}
+            <button type="button" onClick={() => stop()} className={`${pillSecondary} flex-1`}>
+              Cancel
             </button>
-          </>
-        )}
-      </form>
+          </div>
+        </>
+      ) : (
+        <form onSubmit={handleStart} className="flex w-full flex-col items-center gap-6">
+          <TimerController
+            label="Share Time"
+            currentTotalSeconds={sharingSeconds}
+            onUpdate={setSharingSeconds}
+            maxTotalSeconds={59999} // 999 minutes, 59 seconds
+          />
+          <TimerController
+            label="Warning"
+            currentTotalSeconds={warningSeconds}
+            onUpdate={setWarningSeconds}
+            maxTotalSeconds={59999} // 999 minutes, 59 seconds
+            error={warningExceedsSharing ? "Warning can't be longer than Share Time" : undefined}
+          />
+          <button
+            type="submit"
+            disabled={sharingSeconds === 0}
+            className={`${pillPrimary} w-full max-w-xs`}
+          >
+            Start
+          </button>
+        </form>
+      )}
     </main>
   );
 }

@@ -152,4 +152,24 @@ describe(NumberField, () => {
       expect(screen.getByRole("button", { name: "Decrement Seconds" })).toBeDisabled();
     });
   });
+  describe("controls", () => {
+  it("'pad' adds a leading zero", () => {
+    render(<NumberField label="Seconds" value={1} pad onCommit={() => {}} onStep={() => {}} />);
+    expect(screen.getByLabelText("Seconds")).toHaveValue("01");
+  });
+
+  it("doesn't pad the draft while typing", async () => {
+    const user = userEvent.setup();
+    const onCommit = vi.fn();
+    render(<NumberField label="Seconds" value={0} pad onCommit={onCommit} onStep={() => {}} />);
+
+    const input = screen.getByLabelText("Seconds");
+    await user.clear(input);
+    await user.type(input, "1");
+    expect(input).toHaveValue("1");
+
+    await user.tab();
+    expect(onCommit).toHaveBeenCalledExactlyOnceWith(1);
+  });
+  });
 });

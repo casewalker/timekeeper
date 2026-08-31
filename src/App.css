@@ -9,7 +9,7 @@
   z-index: 10;
   opacity: 0;
   background-color: var(--pulse-tint);
-  animation: phase-pulse-flash 0.9s ease-out 1;
+  animation: phase-pulse-flash 0.5s ease-out 1;
 }
 
 .phase-pulse--warning {
@@ -24,7 +24,7 @@
   0% {
     opacity: 0;
   }
-  8% {
+  20% {
     opacity: 1;
   }
   100% {
@@ -38,12 +38,9 @@
   }
 }
 
-.timer-value--editing {
-  color: #666666;
-}
-
+/* Semantic per-phase timer colors, warmed to sit on the cream ground */
 .timer-value--running {
-  color: #444444;
+  color: #1c1917;
 }
 
 .timer-value--warning {
@@ -52,6 +49,20 @@
 
 .timer-value--finished {
   color: red;
+}
+
+@media (prefers-color-scheme: dark) {
+  .timer-value--running {
+    color: #f5f5f4;
+  }
+
+  .timer-value--warning {
+    color: #fbbf24;
+  }
+
+  .timer-value--finished {
+    color: #f87171;
+  }
 }
 
 .counter {
@@ -146,93 +157,5 @@
   @media (max-width: 1024px) {
     flex-direction: column;
     text-align: center;
-  }
-}
-
-#docs {
-  border-right: 1px solid var(--border);
-
-  @media (max-width: 1024px) {
-    border-right: none;
-    border-bottom: 1px solid var(--border);
-  }
-}
-
-#next-steps ul {
-  list-style: none;
-  padding: 0;
-  display: flex;
-  gap: 8px;
-  margin: 32px 0 0;
-
-  .logo {
-    height: 18px;
-  }
-
-  a {
-    color: var(--text-h);
-    font-size: 16px;
-    border-radius: 6px;
-    background: var(--social-bg);
-    display: flex;
-    padding: 6px 12px;
-    align-items: center;
-    gap: 8px;
-    text-decoration: none;
-    transition: box-shadow 0.3s;
-
-    &:hover {
-      box-shadow: var(--shadow);
-    }
-    .button-icon {
-      height: 18px;
-      width: 18px;
-    }
-  }
-
-  @media (max-width: 1024px) {
-    margin-top: 20px;
-    flex-wrap: wrap;
-    justify-content: center;
-
-    li {
-      flex: 1 1 calc(50% - 8px);
-    }
-
-    a {
-      width: 100%;
-      justify-content: center;
-      box-sizing: border-box;
-    }
-  }
-}
-
-#spacer {
-  height: 88px;
-  border-top: 1px solid var(--border);
-  @media (max-width: 1024px) {
-    height: 48px;
-  }
-}
-
-.ticks {
-  position: relative;
-  width: 100%;
-
-  &::before,
-  &::after {
-    content: "";
-    position: absolute;
-    top: -4.5px;
-    border: 5px solid transparent;
-  }
-
-  &::before {
-    left: 0;
-    border-left-color: var(--border);
-  }
-  &::after {
-    right: 0;
-    border-right-color: var(--border);
   }
 }

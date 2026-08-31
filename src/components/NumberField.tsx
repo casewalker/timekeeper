@@ -9,7 +9,7 @@ export interface NumberFieldProps {
   value: number;
   onCommit: (next: number) => void;
   onStep: (direction: StepDirection) => void;
-  unit: string;
+  pad?: boolean;
   disabled?: boolean;
 }
 
@@ -20,7 +20,7 @@ export default function NumberField({
   value,
   onCommit,
   onStep,
-  unit,
+  pad = false,
   disabled = false,
 }: NumberFieldProps) {
   const [draft, setDraft] = useState<string | null>(null);
@@ -53,70 +53,63 @@ export default function NumberField({
     }
   };
 
-  // The input field itself — the one obviously-interactive box
-  const boxBase =
-    "inline-flex items-baseline rounded-lg border bg-white px-2.5 py-1.5 dark:bg-neutral-900";
+  const boxBase = "flex w-full cursor-text justify-center rounded-xl px-1 py-1 transition-colors";
   const boxEnabled =
-    "border-neutral-300 dark:border-neutral-600 " +
-    "focus-within:ring-2 focus-within:ring-neutral-900 dark:focus-within:ring-neutral-100";
-  const boxDisabled = "border-neutral-200 dark:border-neutral-800";
+    "hover:bg-stone-500/10 focus-within:bg-stone-500/10 " +
+    "focus-within:ring-2 focus-within:ring-stone-800 dark:focus-within:ring-stone-100";
+  const boxDisabled = "cursor-not-allowed";
   const boxClasses = `${boxBase} ${disabled ? boxDisabled : boxEnabled}`;
 
   const inputClasses =
-    "peer w-8 text-right text-lg tabular-nums outline-none disabled:cursor-not-allowed " +
-    (disabled ? "text-neutral-400 dark:text-neutral-600" : "text-neutral-900 dark:text-neutral-100");
+    "w-14 cursor-text bg-transparent text-center font-numeral text-4xl lining-nums tabular-nums " +
+    "outline-none disabled:cursor-not-allowed " +
+    (disabled ? "text-stone-400 dark:text-stone-600" : "text-stone-800 dark:text-stone-100");
 
-  // Chevrons float chromeless beside the field, dimmed until hovered
-  const chevronButton =
-    "flex items-center justify-center px-1 py-1 transition " +
+  const stepButtonClasses =
+    "flex h-6 w-full items-center justify-center rounded-md transition-colors " +
     (disabled
-      ? "cursor-not-allowed text-neutral-200 dark:text-neutral-700"
-      : "cursor-pointer rounded text-neutral-400 hover:bg-neutral-100 hover:text-neutral-800 dark:text-neutral-500 dark:hover:bg-neutral-800 dark:hover:text-neutral-100");
+      ? "cursor-not-allowed text-stone-300 dark:text-stone-700"
+      : "cursor-pointer text-stone-400 hover:bg-stone-500/10 hover:text-stone-800 " +
+        "active:bg-stone-500/20 dark:text-stone-500 dark:hover:text-stone-100");
+
+  const possiblyPaddedValue = draft ?? (pad ? String(value).padStart(2, "0") : String(value));
 
   return (
-    <div className="inline-flex items-center my-0.5">
+    <div className="inline-flex w-16 flex-col items-center">
       <label htmlFor={inputId} className="sr-only">
         {label}
       </label>
+      <button
+        type="button"
+        aria-label={`Increment ${label}`}
+        disabled={disabled}
+        onClick={() => onStep("up")}
+        className={stepButtonClasses}
+      >
+        <ChevronUp className="h-4 w-4" strokeWidth={1.75} />
+      </button>
       <div className={boxClasses}>
         <input
           id={inputId}
           type="text"
           inputMode="numeric"
-          value={draft ?? String(value)}
+          value={possiblyPaddedValue}
           disabled={disabled}
           onChange={handleChange}
           onKeyDown={handleKeyDown}
           onBlur={commitDraft}
           className={inputClasses}
         />
-        <span
-          aria-hidden="true"
-          className="ml-1 text-sm text-neutral-400 peer-focus:invisible dark:text-neutral-500"
-        >
-          {unit}
-        </span>
       </div>
-      <div className="flex flex-col">
-        <button
-          type="button"
-          aria-label={`Increment ${label}`}
-          disabled={disabled}
-          onClick={() => onStep("up")}
-          className={chevronButton}
-        >
-          <ChevronUp className="h-2 w-2 stroke-[5px]" />
-        </button>
-        <button
-          type="button"
-          aria-label={`Decrement ${label}`}
-          disabled={disabled}
-          onClick={() => onStep("down")}
-          className={chevronButton}
-        >
-          <ChevronDown className="h-2 w-2 stroke-[5px]" />
-        </button>
-      </div>
+      <button
+        type="button"
+        aria-label={`Decrement ${label}`}
+        disabled={disabled}
+        onClick={() => onStep("down")}
+        className={stepButtonClasses}
+      >
+        <ChevronDown className="h-4 w-4" strokeWidth={1.75} />
+      </button>
     </div>
   );
 }
