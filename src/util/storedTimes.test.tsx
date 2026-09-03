@@ -1,5 +1,4 @@
 import { STORAGE_KEY, readStoredTimes, writeStoredTimes } from "@/util/storedTimes";
-import { describe, expect } from "vitest";
 
 beforeEach(() => localStorage.clear());
 afterEach(vi.restoreAllMocks);

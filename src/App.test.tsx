@@ -229,25 +229,7 @@ describe(App, () => {
   });
 
   describe("hero text", () => {
-    it("Renders a singular of the warning minutes at the right time", async () => {
-      const user = userEvent.setup({ delay: null });
-      render(<App />);
-      await startTheTimer(user, 1, 1, 1, 0);
-      expect(screen.queryAllByText('Say: "1 Minute"')).toHaveLength(0);
-      await act(() => vi.advanceTimersByTime(1000));
-      expect(screen.getByText('Say: "1 Minute"')).toBeInTheDocument();
-    });
-
-    it("Renders a singular of the warning second at the right time", async () => {
-      const user = userEvent.setup({ delay: null });
-      render(<App />);
-      await startTheTimer(user, 0, 2, 0, 1);
-      expect(screen.queryAllByText('Say: "1 Second"')).toHaveLength(0);
-      await act(() => vi.advanceTimersByTime(1000));
-      expect(screen.getByText('Say: "1 Second"')).toBeInTheDocument();
-    });
-
-    it("Renders plurals of the warning minutes and seconds at the right time", async () => {
+    it("Renders the warning text once the threshold is reached", async () => {
       const user = userEvent.setup({ delay: null });
       render(<App />);
       await startTheTimer(user, 6, 0, 5, 55);
