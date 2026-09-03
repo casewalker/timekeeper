@@ -66,30 +66,6 @@ describe(useCountdown, () => {
     expect(result.current.remainingTimerSeconds).toBe(0);
   });
 
-  it("switches the phase back from 'finished' to 'editing' after any document click", () => {
-    const { result } = renderHook(useCountdown);
-    act(() => result.current.start(25, 15));
-    act(() => vi.advanceTimersByTime(25000));
-    expect(result.current.countdownPhase).toBe("finished");
-
-    act(() => document.body.click());
-    expect(result.current.countdownPhase).toBe("editing");
-  });
-
-  it("does not change phase on document-clicks when the state isn't 'finished'", () => {
-    const { result } = renderHook(useCountdown);
-    act(() => document.body.click());
-    expect(result.current.countdownPhase).toBe("editing");
-
-    act(() => result.current.start(24, 12));
-    act(() => document.body.click());
-    expect(result.current.countdownPhase).toBe("running");
-
-    act(() => vi.advanceTimersByTime(13000));
-    act(() => document.body.click());
-    expect(result.current.countdownPhase).toBe("warning");
-  });
-
   it("can be restarted at the end", () => {
     const { result } = renderHook(useCountdown);
     act(() => result.current.start(99, 9));

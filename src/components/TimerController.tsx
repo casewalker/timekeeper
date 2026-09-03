@@ -8,7 +8,6 @@ export interface TimerControllerProps {
   currentTotalSeconds: number;
   onUpdate: (nextTotalSeconds: number) => void;
   maxTotalSeconds?: number;
-  disabled?: boolean;
   error?: string;
 }
 
@@ -17,7 +16,6 @@ export default function TimerController({
   currentTotalSeconds,
   onUpdate,
   maxTotalSeconds,
-  disabled = false,
   error,
 }: TimerControllerProps) {
   const errorId = useId();
@@ -60,21 +58,12 @@ export default function TimerController({
   };
 
   return (
-    <fieldset
-      className="relative min-w-0"
-      disabled={disabled}
-      aria-describedby={error ? errorId : undefined}
-    >
+    <fieldset className="min-w-0" aria-describedby={error ? errorId : undefined}>
       {/* The real legend names the group, but the visible title is a plain span to be styled */}
       <legend className="sr-only">{label}</legend>
       {/* Stacked on a phone */}
       <div className="flex flex-col items-center gap-1 sm:flex-row sm:justify-center sm:gap-3">
-        <span
-          aria-hidden="true"
-          className={`text-2xl ${
-            disabled ? "text-stone-400 dark:text-stone-600" : "text-stone-600 dark:text-stone-300"
-          }`}
-        >
+        <span aria-hidden="true" className="text-2xl text-stone-600 dark:text-stone-300">
           {label}:
         </span>
         <div className="flex items-center">
@@ -84,13 +73,10 @@ export default function TimerController({
             value={minutes}
             onCommit={commitMinutes}
             onStep={stepMinutes}
-            disabled={disabled}
           />
           <span
             aria-hidden="true"
-            className={`font-numeral text-4xl ${
-              disabled ? "text-stone-300 dark:text-stone-700" : "text-stone-400 dark:text-stone-500"
-            }`}
+            className="font-numeral text-4xl text-stone-400 dark:text-stone-500"
           >
             :
           </span>
@@ -100,17 +86,13 @@ export default function TimerController({
             value={seconds}
             onCommit={commitSeconds}
             onStep={stepSeconds}
-            disabled={disabled}
           />
         </div>
       </div>
       {/* Either show the readable duration, or show the form error */}
       <div className="mt-1 min-h-4">
         {error == null ? (
-          <p
-            aria-hidden="true"
-            className="text-center text-xs text-stone-500 dark:text-stone-400"
-          >
+          <p aria-hidden="true" className="text-center text-xs text-stone-500 dark:text-stone-400">
             {getReadableDurationFormat(currentTotalSeconds).toLowerCase()}
           </p>
         ) : (
@@ -123,9 +105,6 @@ export default function TimerController({
           </p>
         )}
       </div>
-      {/* Disabled controls swallow clicks, this shield lets them reach the 'document dismiss' handler
-       TODO: Remove the click-anywhere-dismissal */}
-      {disabled && <div className="absolute inset-0" aria-hidden="true" />}
     </fieldset>
   );
 }

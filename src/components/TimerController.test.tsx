@@ -48,6 +48,10 @@ describe(TimerController, () => {
     await user.click(screen.getByRole("button", { name: "Increment Seconds" }));
     expect(getMinutesInput()).toHaveValue("3");
     expect(getSecondsInput()).toHaveValue("00");
+
+    await user.click(screen.getByRole("button", { name: "Increment Seconds" }));
+    expect(getMinutesInput()).toHaveValue("3");
+    expect(getSecondsInput()).toHaveValue("15");
   });
 
   it("rounds the minutes down correctly (decrement seconds button)", async () => {
@@ -57,6 +61,9 @@ describe(TimerController, () => {
     expect(getSecondsInput()).toHaveValue("01");
 
     await user.click(screen.getByRole("button", { name: "Decrement Seconds" }));
+    expect(getMinutesInput()).toHaveValue("2");
+    expect(getSecondsInput()).toHaveValue("00");
+
     await user.click(screen.getByRole("button", { name: "Decrement Seconds" }));
     expect(getMinutesInput()).toHaveValue("1");
     expect(getSecondsInput()).toHaveValue("45");
@@ -108,6 +115,7 @@ describe(TimerController, () => {
     const user = userEvent.setup();
     render(<MockTimerApp />);
 
+    await user.click(screen.getByRole("button", { name: "Decrement Minutes" }));
     await user.click(screen.getByRole("button", { name: "Decrement Seconds" }));
     expect(getMinutesInput()).toHaveValue("0");
     expect(getSecondsInput()).toHaveValue("00");
@@ -147,16 +155,5 @@ describe(TimerController, () => {
 
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
     expect(screen.getByRole("group", { name: "Timer" })).not.toHaveAttribute("aria-describedby");
-  });
-
-  it("disables both input fields and their buttons when disabled", () => {
-    render(<TimerController label="Timer" currentTotalSeconds={0} onUpdate={() => {}} disabled />);
-
-    expect(getMinutesInput()).toBeDisabled();
-    expect(screen.getByRole("button", { name: "Increment Minutes" })).toBeDisabled();
-    expect(screen.getByRole("button", { name: "Decrement Minutes" })).toBeDisabled();
-    expect(getSecondsInput()).toBeDisabled();
-    expect(screen.getByRole("button", { name: "Increment Seconds" })).toBeDisabled();
-    expect(screen.getByRole("button", { name: "Decrement Seconds" })).toBeDisabled();
   });
 });

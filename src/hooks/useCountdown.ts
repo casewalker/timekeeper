@@ -36,13 +36,5 @@ export default function useCountdown() {
     return () => clearInterval(intervalId);
   }, [countdownPhase, timerDeadline, warningSeconds]);
 
-  // "Finished" holds at 0:00 until dismissed by any click
-  useEffect(() => {
-    if (countdownPhase !== "finished") return;
-    const dismiss = () => setCountdownPhase((p) => (p === "finished" ? "editing" : p));
-    document.addEventListener("click", dismiss);
-    return () => document.removeEventListener("click", dismiss);
-  }, [countdownPhase]);
-
   return { countdownPhase, remainingTimerSeconds, start, stop };
 }

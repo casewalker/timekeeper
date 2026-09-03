@@ -26,6 +26,7 @@ describe(NumberField, () => {
       expect(onCommit).toHaveBeenCalledExactlyOnceWith(46);
     });
 
+    // TODO: Make sure it also blurs
     it("commits on Enter", async () => {
       const user = userEvent.setup();
       const onCommit = vi.fn();
@@ -142,34 +143,24 @@ describe(NumberField, () => {
     });
   });
 
-  describe("disabled", () => {
-    it("disables the input and both buttons when disabled", () => {
-      render(
-        <NumberField label="Seconds" value={0} disabled onCommit={() => {}} onStep={() => {}} />,
-      );
-      expect(screen.getByLabelText("Seconds")).toBeDisabled();
-      expect(screen.getByRole("button", { name: "Increment Seconds" })).toBeDisabled();
-      expect(screen.getByRole("button", { name: "Decrement Seconds" })).toBeDisabled();
-    });
-  });
   describe("controls", () => {
-  it("'pad' adds a leading zero", () => {
-    render(<NumberField label="Seconds" value={1} pad onCommit={() => {}} onStep={() => {}} />);
-    expect(screen.getByLabelText("Seconds")).toHaveValue("01");
-  });
+    it("'pad' adds a leading zero", () => {
+      render(<NumberField label="Seconds" value={1} pad onCommit={() => {}} onStep={() => {}} />);
+      expect(screen.getByLabelText("Seconds")).toHaveValue("01");
+    });
 
-  it("doesn't pad the draft while typing", async () => {
-    const user = userEvent.setup();
-    const onCommit = vi.fn();
-    render(<NumberField label="Seconds" value={0} pad onCommit={onCommit} onStep={() => {}} />);
+    it("doesn't pad the draft while typing", async () => {
+      const user = userEvent.setup();
+      const onCommit = vi.fn();
+      render(<NumberField label="Seconds" value={0} pad onCommit={onCommit} onStep={() => {}} />);
 
-    const input = screen.getByLabelText("Seconds");
-    await user.clear(input);
-    await user.type(input, "1");
-    expect(input).toHaveValue("1");
+      const input = screen.getByLabelText("Seconds");
+      await user.clear(input);
+      await user.type(input, "1");
+      expect(input).toHaveValue("1");
 
-    await user.tab();
-    expect(onCommit).toHaveBeenCalledExactlyOnceWith(1);
-  });
+      await user.tab();
+      expect(onCommit).toHaveBeenCalledExactlyOnceWith(1);
+    });
   });
 });

@@ -212,35 +212,6 @@ describe(App, () => {
       expect(getTimer("Warning").getByLabelText("Seconds")).toBeEnabled();
     });
 
-    it("holds at zero until a click anywhere dismisses it", async () => {
-      const user = userEvent.setup({ delay: null });
-      render(<App />);
-      await startTheTimer(user, 5, 0, 1, 0);
-      await act(() => vi.advanceTimersByTime(300000));
-      expect(screen.getByRole("timer")).toHaveTextContent("0:00");
-      expect(screen.getByRole("button", { name: "Restart" })).toBeInTheDocument();
-
-      await act(() => vi.advanceTimersByTime(60000));
-      expect(screen.getByRole("timer")).toHaveTextContent("0:00");
-      expect(screen.getByRole("button", { name: "Restart" })).toBeInTheDocument();
-
-      await user.click(document.body);
-      expect(screen.getByRole("button", { name: "Start" })).toBeInTheDocument();
-      expect(getTimer("Share Time").getByLabelText("Minutes")).toBeEnabled();
-      expect(getTimer("Share Time").getByLabelText("Minutes")).toHaveValue("5");
-    });
-
-    it("clicking Restart at zero starts a fresh countdown instead of dismissing", async () => {
-      const user = userEvent.setup({ delay: null });
-      render(<App />);
-      await startTheTimer(user, 5, 0, 1, 0);
-      await act(() => vi.advanceTimersByTime(300000));
-
-      await user.click(screen.getByRole("button", { name: "Restart" }));
-      expect(screen.getByRole("timer")).toHaveTextContent("5:00");
-      expect(screen.queryByRole("group", { name: "Share Time" })).not.toBeInTheDocument();
-    });
-
     it("sets the right timer-color per phase", async () => {
       const getTimerValue = () => screen.getByRole("timer").querySelector("span");
 

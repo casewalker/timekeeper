@@ -10,7 +10,6 @@ export interface NumberFieldProps {
   onCommit: (next: number) => void;
   onStep: (direction: StepDirection) => void;
   pad?: boolean;
-  disabled?: boolean;
 }
 
 const isNaturalNumber = (text: string) => /^\d+$/.test(text);
@@ -21,7 +20,6 @@ export default function NumberField({
   onCommit,
   onStep,
   pad = false,
-  disabled = false,
 }: NumberFieldProps) {
   const [draft, setDraft] = useState<string | null>(null);
   const inputId = useId();
@@ -53,24 +51,19 @@ export default function NumberField({
     }
   };
 
-  const boxBase = "flex w-full cursor-text justify-center rounded-xl px-1 py-1 transition-colors";
-  const boxEnabled =
+  const boxClasses =
+    "flex w-full cursor-text justify-center rounded-xl px-1 py-1 transition-colors " +
     "hover:bg-stone-500/10 focus-within:bg-stone-500/10 " +
     "focus-within:ring-2 focus-within:ring-stone-800 dark:focus-within:ring-stone-100";
-  const boxDisabled = "cursor-not-allowed";
-  const boxClasses = `${boxBase} ${disabled ? boxDisabled : boxEnabled}`;
 
   const inputClasses =
     "w-14 cursor-text bg-transparent text-center font-numeral text-4xl lining-nums tabular-nums " +
-    "outline-none disabled:cursor-not-allowed " +
-    (disabled ? "text-stone-400 dark:text-stone-600" : "text-stone-800 dark:text-stone-100");
+    "outline-none text-stone-800 dark:text-stone-100";
 
   const stepButtonClasses =
-    "flex h-6 w-full items-center justify-center rounded-md transition-colors " +
-    (disabled
-      ? "cursor-not-allowed text-stone-300 dark:text-stone-700"
-      : "cursor-pointer text-stone-400 hover:bg-stone-500/10 hover:text-stone-800 " +
-        "active:bg-stone-500/20 dark:text-stone-500 dark:hover:text-stone-100");
+    "flex h-6 w-full cursor-pointer items-center justify-center rounded-md transition-colors " +
+    "text-stone-400 hover:bg-stone-500/10 hover:text-stone-800 " +
+    "active:bg-stone-500/20 dark:text-stone-500 dark:hover:text-stone-100";
 
   const possiblyPaddedValue = draft ?? (pad ? String(value).padStart(2, "0") : String(value));
 
@@ -82,7 +75,6 @@ export default function NumberField({
       <button
         type="button"
         aria-label={`Increment ${label}`}
-        disabled={disabled}
         onClick={() => onStep("up")}
         className={stepButtonClasses}
       >
@@ -94,7 +86,6 @@ export default function NumberField({
           type="text"
           inputMode="numeric"
           value={possiblyPaddedValue}
-          disabled={disabled}
           onChange={handleChange}
           onKeyDown={handleKeyDown}
           onBlur={commitDraft}
@@ -104,7 +95,6 @@ export default function NumberField({
       <button
         type="button"
         aria-label={`Decrement ${label}`}
-        disabled={disabled}
         onClick={() => onStep("down")}
         className={stepButtonClasses}
       >
