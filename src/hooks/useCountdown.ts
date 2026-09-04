@@ -21,13 +21,13 @@ export default function useCountdown() {
     setCountdownPhase("editing");
   };
 
-  // Run the countdown until it is finished
+  // Run the countdown, and keep ticking past zero into overtime once finished
   useEffect(() => {
-    if (!["running", "warning"].includes(countdownPhase)) return;
+    if (countdownPhase === "editing") return;
     const intervalId = setInterval(() => {
-      const nextRemaining = Math.max(0, Math.ceil((timerDeadline - Date.now()) / 1000));
+      const nextRemaining = Math.ceil((timerDeadline - Date.now()) / 1000);
       setRemainingTimerSeconds(nextRemaining);
-      if (nextRemaining === 0) {
+      if (nextRemaining <= 0) {
         setCountdownPhase("finished");
       } else if (nextRemaining <= warningSeconds) {
         setCountdownPhase("warning");

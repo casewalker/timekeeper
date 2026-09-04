@@ -53,7 +53,7 @@ describe(useCountdown, () => {
     expect(result.current.countdownPhase).toBe("finished");
   });
 
-  it("switches the phase to 'finished' at zero and stays there", () => {
+  it("switches the phase to 'finished' at zero and keeps counting into overtime", () => {
     const { result } = renderHook(useCountdown);
     act(() => result.current.start(1, 0));
 
@@ -61,9 +61,13 @@ describe(useCountdown, () => {
     expect(result.current.countdownPhase).toBe("finished");
     expect(result.current.remainingTimerSeconds).toBe(0);
 
+    act(() => vi.advanceTimersByTime(14000));
+    expect(result.current.countdownPhase).toBe("finished");
+    expect(result.current.remainingTimerSeconds).toBe(-14);
+
     act(() => vi.advanceTimersByTime(60000));
     expect(result.current.countdownPhase).toBe("finished");
-    expect(result.current.remainingTimerSeconds).toBe(0);
+    expect(result.current.remainingTimerSeconds).toBe(-74);
   });
 
   it("can be restarted at the end", () => {

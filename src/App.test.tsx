@@ -178,6 +178,52 @@ describe(App, () => {
       expect(screen.getByRole("timer")).toHaveTextContent("4:00");
     });
 
+    it("counts up past zero into overtime with an accessible name, a hidden 'over time' label, and a sticky 'Say Time' alert", async () => {
+      const user = userEvent.setup({ delay: null });
+      render(<App />);
+      await startTheTimer(user, 0, 2, 0, 1);
+      expect(screen.queryByText("over time")).not.toBeInTheDocument();
+      expect(screen.getByRole("alert")).not.toHaveTextContent('Say: "Time!"');
+
+      await act(() => vi.advanceTimersByTime(2000));
+      expect(screen.getByRole("timer")).toHaveTextContent("0:00");
+      expect(screen.queryByText("over time")).not.toBeInTheDocument();
+      expect(screen.getByRole("alert")).toHaveTextContent('Say: "Time!"');
+
+      await act(() => vi.advanceTimersByTime(1000));
+      expect(screen.getByRole("timer")).toHaveTextContent("-0:01");
+      expect(screen.getByRole("timer")).toHaveAccessibleName("1 Second over time");
+      expect(screen.getByText("over time")).toHaveAttribute("aria-hidden", "true");
+      expect(screen.getByRole("alert")).toHaveTextContent('Say: "Time!"');
+
+      await act(() => vi.advanceTimersByTime(13000));
+      expect(screen.getByRole("timer")).toHaveTextContent("-0:14");
+      expect(screen.getByRole("timer")).toHaveAccessibleName("14 Seconds over time");
+      expect(screen.getByText("over time")).toHaveAttribute("aria-hidden", "true");
+      expect(screen.getByRole("alert")).toHaveTextContent('Say: "Time!"');
+
+      await act(() => vi.advanceTimersByTime(60000));
+      expect(screen.getByRole("timer")).toHaveTextContent("-1:14");
+      expect(screen.getByRole("timer")).toHaveAccessibleName("1 Minute and 14 Seconds over time");
+      expect(screen.getByText("over time")).toHaveAttribute("aria-hidden", "true");
+      expect(screen.getByRole("alert")).toHaveTextContent('Say: "Time!"');
+    });
+
+    it("the Restart button returns to the full time from overtime", async () => {
+      const user = userEvent.setup({ delay: null });
+      render(<App />);
+      await startTheTimer(user, 5, 0, 1, 0);
+      expect(screen.queryByText("over time")).not.toBeInTheDocument();
+
+      await act(() => vi.advanceTimersByTime(330000));
+      expect(screen.getByRole("timer")).toHaveTextContent("-0:30");
+      expect(screen.queryByText("over time")).toBeInTheDocument();
+
+      await user.click(screen.getByRole("button", { name: "Restart" }));
+      expect(screen.getByRole("timer")).toHaveTextContent("5:00");
+      expect(screen.queryByText("over time")).not.toBeInTheDocument();
+    });
+
     it("the Restart button returns the countdown to the full time, with controls still removed", async () => {
       const user = userEvent.setup({ delay: null });
       render(<App />);

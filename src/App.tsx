@@ -40,23 +40,20 @@ export default function App() {
     start(sharingSeconds, actualWarningSeconds);
   };
 
-  type PhasedResources = { countdownTime: number; sayLine: string };
-
-  const phasedResources = (function (): PhasedResources {
+  const timerAnnouncement = (function (): string {
     switch (countdownPhase) {
-      case "running":
-        return { countdownTime: remainingTimerSeconds, sayLine: "" };
       case "warning":
-        return {
-          countdownTime: remainingTimerSeconds,
-          sayLine: `Say: "${getReadableDurationFormat(warningSeconds)}"`,
-        };
+        return `Say: "${getReadableDurationFormat(warningSeconds)}"`;
       case "finished":
-        return { countdownTime: remainingTimerSeconds, sayLine: 'Say: "Time!"' };
+        return 'Say: "Time!"';
       default:
-        return { countdownTime: 0, sayLine: "" };
+        return "";
     }
   })();
+
+  const isOverTime = remainingTimerSeconds < 0;
+  const displaySeconds = Math.abs(remainingTimerSeconds);
+  const spokenTime = `${getReadableDurationFormat(displaySeconds)}${isOverTime ? " over time" : ""}`;
 
   return (
     <main
@@ -79,15 +76,24 @@ export default function App() {
           <div className="flex flex-col items-center gap-4">
             <div className="flex min-h-10 flex-col justify-end" role="alert">
               <p className="font-numeral text-3xl font-bold text-stone-800 dark:text-stone-100">
-                {phasedResources.sayLine}
+                {timerAnnouncement}
               </p>
             </div>
-            <div role="timer" aria-label={getReadableDurationFormat(phasedResources.countdownTime)}>
-              <span
-                className={`timer-value timer-value--${countdownPhase} font-numeral text-[clamp(3.5rem,min(26vw,22vh),8rem)] leading-none lining-nums tabular-nums`}
+            <div className="flex flex-col items-center">
+              <div role="timer" aria-label={spokenTime}>
+                <span
+                  className={`timer-value timer-value--${countdownPhase} font-numeral text-[clamp(3.5rem,min(26vw,22vh),8rem)] leading-none lining-nums tabular-nums`}
+                >
+                  {`${isOverTime ? "-" : ""}${formatTimer(displaySeconds)}`}
+                </span>
+              </div>
+              {/* Slot held open so the buttons don't shift when overtime starts */}
+              <p
+                className="min-h-6 text-lg text-stone-500 italic dark:text-stone-400"
+                aria-hidden="true"
               >
-                {formatTimer(phasedResources.countdownTime)}
-              </span>
+                {isOverTime ? "over time" : ""}
+              </p>
             </div>
           </div>
           {/* Control buttons */}
