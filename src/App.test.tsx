@@ -5,6 +5,17 @@ import App from "@/App";
 
 vi.useFakeTimers({ shouldAdvanceTime: true });
 
+const { requestWakeLockMock, releaseWakeLockMock } = vi.hoisted(() => ({
+  requestWakeLockMock: vi.fn(),
+  releaseWakeLockMock: vi.fn(async () => {}),
+}));
+
+vi.mock("react-screen-wake-lock", () => ({
+  useWakeLock: () => ({ request: requestWakeLockMock, release: releaseWakeLockMock }),
+}));
+
+beforeEach(vi.clearAllMocks);
+
 /** Clear the timer. */
 const clearTheTimer = async (user: UserEvent) => {
   await user.clear(getTimer("Share Time").getByLabelText("Minutes"));
@@ -291,6 +302,37 @@ describe(App, () => {
       expect(screen.queryAllByText('Say: "Time!"')).toHaveLength(0);
       await act(() => vi.advanceTimersByTime(2000));
       expect(screen.getByText('Say: "Time!"')).toBeInTheDocument();
+    });
+  });
+
+  describe("wake-lock", () => {
+    it("requests the wake-lock after the timer starts", async () => {
+      const user = userEvent.setup({ delay: null });
+      render(<App />);
+      expect(requestWakeLockMock).not.toHaveBeenCalled();
+      expect(releaseWakeLockMock).not.toHaveBeenCalled();
+
+      await startTheTimer(user, 1, 0, 0, 30);
+      expect(requestWakeLockMock).toHaveBeenCalledOnce();
+      expect(releaseWakeLockMock).not.toHaveBeenCalled();
+    });
+
+    it("releases the screen lock on cancel, not after the time has run out", async () => {
+      const user = userEvent.setup({ delay: null });
+      render(<App />);
+      await startTheTimer(user, 1, 0, 0, 30);
+      await act(() => vi.advanceTimersByTime(25000));
+      expect(releaseWakeLockMock).not.toHaveBeenCalled();
+
+      await act(() => vi.advanceTimersByTime(10000));
+      expect(releaseWakeLockMock).not.toHaveBeenCalled();
+
+      await act(() => vi.advanceTimersByTime(35000));
+      expect(releaseWakeLockMock).not.toHaveBeenCalled();
+      expect(screen.queryByText("over time")).toBeInTheDocument();
+
+      await user.click(screen.getByRole("button", { name: "Cancel" }));
+      expect(releaseWakeLockMock).toHaveBeenCalledOnce();
     });
   });
 });

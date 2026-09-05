@@ -1,5 +1,6 @@
 import type { SubmitEventHandler } from "react";
 import { useState } from "react";
+import { useWakeLock } from "react-screen-wake-lock";
 import TimerController from "@/components/TimerController";
 import useCountdown from "@/hooks/useCountdown";
 import { getReadableDurationFormat } from "@/util/formatDuration";
@@ -31,6 +32,10 @@ export default function App() {
   const isEditing = countdownPhase === "editing";
   const isFinished = countdownPhase === "finished";
 
+  const { request: requestWakeLock, release: releaseWakeLock } = useWakeLock({
+    reacquireOnPageVisible: true,
+  });
+
   const handleStart: SubmitEventHandler<HTMLFormElement> = (event) => {
     event.preventDefault();
     // Invariant: 0 ≤ warning ≤ sharing; if warning is too big, silently drag it down upon starting
@@ -38,6 +43,12 @@ export default function App() {
     setWarningSeconds(actualWarningSeconds);
     writeStoredTimes({ sharingSeconds, warningSeconds: actualWarningSeconds });
     start(sharingSeconds, actualWarningSeconds);
+    void requestWakeLock();
+  };
+
+  const handleCancel = () => {
+    stop();
+    releaseWakeLock().catch((e) => console.warn("Failed to release wake-lock:", e));
   };
 
   const timerAnnouncement = (function (): string {
@@ -105,7 +116,7 @@ export default function App() {
             >
               Restart
             </button>
-            <button type="button" onClick={() => stop()} className={`${pillSecondary} flex-1`}>
+            <button type="button" onClick={handleCancel} className={`${pillSecondary} flex-1`}>
               Cancel
             </button>
           </div>
