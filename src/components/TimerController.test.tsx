@@ -106,6 +106,7 @@ describe(TimerController, () => {
     expect(getMinutesInput()).toHaveValue("3");
     expect(getSecondsInput()).toHaveValue("00");
 
+    await user.clear(getSecondsInput());
     await user.type(getSecondsInput(), "75{Enter}");
     expect(getMinutesInput()).toHaveValue("3");
     expect(getSecondsInput()).toHaveValue("59");

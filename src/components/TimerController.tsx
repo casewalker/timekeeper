@@ -68,20 +68,21 @@ export default function TimerController({
         </span>
         <div className="flex items-center">
           <NumberField
-            // TODO: Provide some way to make Minutes wider perhaps? Accommodate "999"?
             label="Minutes"
+            maxLength={3}
             value={minutes}
             onCommit={commitMinutes}
             onStep={stepMinutes}
           />
           <span
             aria-hidden="true"
-            className="font-numeral text-4xl text-stone-400 dark:text-stone-500"
+            className="font-numeral -translate-y-0.5 text-4xl text-stone-400 dark:text-stone-500"
           >
             :
           </span>
           <NumberField
             label="Seconds"
+            maxLength={2}
             pad={true}
             value={seconds}
             onCommit={commitSeconds}
@@ -90,7 +91,7 @@ export default function TimerController({
         </div>
       </div>
       {/* Either show the readable duration, or show the form error */}
-      <div className="mt-1 min-h-4">
+      <div className="mt-1 min-h-4 -translate-y-0.75">
         {error == null ? (
           <p aria-hidden="true" className="text-center text-xs text-stone-500 dark:text-stone-400">
             {getReadableDurationFormat(currentTotalSeconds).toLowerCase()}

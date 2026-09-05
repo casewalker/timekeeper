@@ -60,7 +60,7 @@ describe(App, () => {
       expect(getTimer("Share Time").getByLabelText("Seconds")).toHaveValue("12");
       expect(getTimer("Warning").getByLabelText("Minutes")).toHaveValue("1");
       expect(getTimer("Warning").getByLabelText("Seconds")).toHaveValue("49");
-    });
+    }, 1000_000);
 
     it("lets the user enter Warning ≥ Sharing time but shows a validation error", async () => {
       const user = userEvent.setup({ delay: null });

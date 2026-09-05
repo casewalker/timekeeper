@@ -111,7 +111,7 @@ export default function App() {
           </div>
         </>
       ) : (
-        <form onSubmit={handleStart} className="flex w-full flex-col items-center gap-6">
+        <form onSubmit={handleStart} className="flex w-full flex-col items-center gap-14">
           <TimerController
             label="Share Time"
             currentTotalSeconds={sharingSeconds}
