@@ -4,7 +4,7 @@ import { useWakeLock } from "react-screen-wake-lock";
 import TimerController from "@/components/TimerController";
 import useCountdown from "@/hooks/useCountdown";
 import { getReadableDurationFormat } from "@/util/formatDuration";
-import { readStoredTimes, writeStoredTimes } from "@/util/storedTimes";
+import { readStoredTimes, writeStoredTimes } from "@/util/appLocalStorage";
 import "@/App.css";
 
 const formatTimer = (totalSeconds: number) =>

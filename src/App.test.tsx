@@ -2,8 +2,11 @@ import { act, render, screen, within } from "@testing-library/react";
 import type { UserEvent } from "@testing-library/user-event";
 import userEvent from "@testing-library/user-event";
 import App from "@/App";
+import { writeAppState, writeStoredTimes } from "@/util/appLocalStorage";
 
-vi.useFakeTimers({ shouldAdvanceTime: true });
+const NOW = 1767225600000; // new Date("2026-01-01T00:00:00Z")
+
+vi.useFakeTimers({ shouldAdvanceTime: true, now: NOW });
 
 const { requestWakeLockMock, releaseWakeLockMock } = vi.hoisted(() => ({
   requestWakeLockMock: vi.fn(),
@@ -14,7 +17,11 @@ vi.mock("react-screen-wake-lock", () => ({
   useWakeLock: () => ({ request: requestWakeLockMock, release: releaseWakeLockMock }),
 }));
 
-beforeEach(vi.clearAllMocks);
+beforeEach(() => {
+  vi.resetAllMocks();
+  localStorage.clear();
+  vi.setSystemTime(NOW);
+});
 
 /** Clear the timer. */
 const clearTheTimer = async (user: UserEvent) => {
@@ -158,7 +165,7 @@ describe(App, () => {
     });
   });
 
-  describe("running", () => {
+  describe("timer running", () => {
     it("replaces the Start button with Restart and Cancel", async () => {
       const user = userEvent.setup({ delay: null });
       render(<App />);
@@ -302,6 +309,62 @@ describe(App, () => {
       expect(screen.queryAllByText('Say: "Time!"')).toHaveLength(0);
       await act(() => vi.advanceTimersByTime(2000));
       expect(screen.getByText('Say: "Time!"')).toBeInTheDocument();
+    });
+  });
+
+  describe("local storage", () => {
+    const storeRunningSession = (deadlineSeconds: number) => {
+      writeStoredTimes({ sharingSeconds: 300, warningSeconds: 60 });
+      writeAppState({ isRunning: true, deadlineMs: NOW + deadlineSeconds * 1000 });
+    };
+
+    it("comes back to the running timer instead of editing", async () => {
+      storeRunningSession(200);
+      render(<App />);
+
+      expect(screen.getByRole("timer")).toHaveTextContent("3:20");
+      expect(screen.queryByRole("group", { name: "Share Time" })).not.toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "Cancel" })).toBeInTheDocument();
+
+      await act(() => vi.advanceTimersByTime(1000));
+      expect(screen.getByRole("timer")).toHaveTextContent("3:19");
+    });
+
+    it("comes back into overtime rather than resetting", async () => {
+      storeRunningSession(-74);
+      render(<App />);
+
+      expect(screen.getByRole("timer")).toHaveTextContent("-1:14");
+      expect(screen.getByRole("alert")).toHaveTextContent('Say: "Time!"');
+    });
+
+    it("restarts from the stored Share Time", async () => {
+      const user = userEvent.setup({ delay: null });
+      storeRunningSession(200);
+      render(<App />);
+
+      await user.click(screen.getByRole("button", { name: "Restart" }));
+      expect(screen.getByRole("timer")).toHaveTextContent("5:00");
+    });
+
+    it("has the app open on editing when the stored session is not running", () => {
+      writeAppState({ isRunning: false, deadlineMs: 0 });
+      render(<App />);
+
+      expect(screen.getByRole("group", { name: "Share Time" })).toBeInTheDocument();
+      expect(screen.queryByRole("timer")).not.toBeInTheDocument();
+    });
+
+    it("does not resume after the timer was cancelled", async () => {
+      const user = userEvent.setup({ delay: null });
+      const { unmount } = render(<App />);
+      await startTheTimer(user, 5, 0, 1, 0);
+      await user.click(screen.getByRole("button", { name: "Cancel" }));
+      unmount();
+
+      render(<App />);
+      expect(screen.getByRole("group", { name: "Share Time" })).toBeInTheDocument();
+      expect(screen.queryByRole("timer")).not.toBeInTheDocument();
     });
   });
 
